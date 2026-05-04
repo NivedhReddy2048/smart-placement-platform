@@ -1,9 +1,18 @@
-venv/
+# Python
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+*.sqlite3
+
+# Django
 db.sqlite3
 .env
+
+# Node
 node_modules/
 .next/
-build/
-dist/
+out/
+
+# Logs
+*.log
