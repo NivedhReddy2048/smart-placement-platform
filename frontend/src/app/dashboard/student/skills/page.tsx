@@ -3,17 +3,17 @@
 import { useEffect, useState, useMemo } from "react";
 import { useUser } from "@/context/UserContext";
 import { useRouter } from "next/navigation";
-import { 
-  Search, 
-  Plus, 
-  Trash2, 
-  X, 
-  Check, 
+import {
+  Search,
+  Plus,
+  Trash2,
+  X,
+  Check,
   Target,
-  Brain, 
-  TrendingUp, 
-  Briefcase, 
-  Zap, 
+  Brain,
+  TrendingUp,
+  Briefcase,
+  Zap,
   ShieldCheck,
   PlusCircle,
   Sparkles,
@@ -72,7 +72,7 @@ function calculateSkillImpact(skill: string) {
 function getStrategicGaps(userSkills: string[], role: string) {
   const weights = ROLE_WEIGHTS[role];
   const roleSkills = Object.keys(weights);
-  
+
   return roleSkills
     .filter(skill => !userSkills.some(u => u.toLowerCase() === skill.toLowerCase()))
     .sort((a, b) => (weights[b] || 1) - (weights[a] || 1));
@@ -85,6 +85,12 @@ export default function SkillsPage() {
   const { user, updateUser, isLoading: profileLoading } = useUser();
   const [skillsData, setSkillsData] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const [simulatedSkills, setSimulatedSkills] = useState<string[]>([]);
+  const [highlightedRoles, setHighlightedRoles] = useState<string[]>([]);
+  const [toast, setToast] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [newSkill, setNewSkill] = useState("");
 
   const fetchSkills = async () => {
     try {
@@ -123,7 +129,7 @@ export default function SkillsPage() {
       const currentPct = calculateWeightedMatch(activeSkills, role);
       const basePct = baseAnalytics.roleMatches.find(b => b.role === role)?.pct || 0;
       const isUnlocked = basePct < 50 && currentPct >= 50;
-      
+
       return {
         role,
         pct: currentPct,
@@ -167,9 +173,9 @@ export default function SkillsPage() {
 
   const toggleSimulateSkill = (skill: string) => {
     if (skillsData.some(s => s.toLowerCase() === skill.toLowerCase())) return;
-    
+
     const isAdding = !simulatedSkills.includes(skill);
-    
+
     if (isAdding) {
       // Find roles that will improve
       const rolesToHighlight = analytics.roleMatches
@@ -178,12 +184,12 @@ export default function SkillsPage() {
           return nextPct > r.pct;
         })
         .map(r => r.role);
-      
+
       setHighlightedRoles(rolesToHighlight);
       setTimeout(() => setHighlightedRoles([]), 2000);
     }
 
-    setSimulatedSkills(prev => 
+    setSimulatedSkills(prev =>
       prev.includes(skill) ? prev.filter(s => s !== skill) : [...prev, skill]
     );
   };
@@ -216,7 +222,7 @@ export default function SkillsPage() {
 
   return (
     <div className="p-4 sm:p-6 md:p-8 max-w-5xl mx-auto pb-24 animate-in fade-in duration-700">
-      
+
       {/* Simulation Feedback Badge */}
       {analytics.unlockedCount > 0 && (
         <div className="fixed top-24 left-1/2 -translate-x-1/2 bg-emerald-600 text-white px-6 py-2 rounded-full shadow-2xl z-50 flex items-center gap-2 animate-bounce font-black text-xs tracking-widest uppercase">
@@ -234,7 +240,7 @@ export default function SkillsPage() {
             AI-powered growth simulation and gap analysis
           </p>
         </div>
-        
+
         <div className="flex items-center gap-3">
           {simulatedSkills.length > 0 && (
             <button onClick={() => setSimulatedSkills([])} className="p-3 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/10 rounded-2xl transition-all" title="Reset Simulation">
@@ -242,16 +248,16 @@ export default function SkillsPage() {
             </button>
           )}
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-2 flex gap-4">
-             <div className="px-4 py-1 text-center border-r border-slate-100 dark:border-slate-800">
-                <p className="text-xl font-black text-slate-900 dark:text-white">{skillsData.length}</p>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Real</p>
-             </div>
-             <div className="px-4 py-1 text-center">
-                <p className={clsx("text-xl font-black transition-all", simulatedSkills.length > 0 ? "text-blue-600 scale-110" : "text-slate-300")}>
-                  {simulatedSkills.length > 0 ? `+${simulatedSkills.length}` : '0'}
-                </p>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sim</p>
-             </div>
+            <div className="px-4 py-1 text-center border-r border-slate-100 dark:border-slate-800">
+              <p className="text-xl font-black text-slate-900 dark:text-white">{skillsData.length}</p>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Real</p>
+            </div>
+            <div className="px-4 py-1 text-center">
+              <p className={clsx("text-xl font-black transition-all", simulatedSkills.length > 0 ? "text-blue-600 scale-110" : "text-slate-300")}>
+                {simulatedSkills.length > 0 ? `+${simulatedSkills.length}` : '0'}
+              </p>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sim</p>
+            </div>
           </div>
         </div>
       </div>
@@ -259,7 +265,7 @@ export default function SkillsPage() {
       {/* ── 1. BEST ROLE MATCH & SUMMARY ──────────────────────────────── */}
       <div className="bg-gradient-to-br from-slate-900 to-indigo-950 rounded-[2.5rem] p-8 sm:p-10 mb-10 shadow-2xl relative overflow-hidden group">
         <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl -mr-48 -mt-48 transition-opacity group-hover:opacity-100 opacity-50" />
-        
+
         <div className="relative z-10">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
             <div className="space-y-6">
@@ -272,7 +278,7 @@ export default function SkillsPage() {
                   <p className="text-blue-300/60 text-[10px] font-black uppercase tracking-[0.2em]">{analytics.topMatch.role}</p>
                 </div>
               </div>
-              
+
               <div className="flex flex-wrap gap-4">
                 <div className="bg-white/5 border border-white/10 rounded-2xl px-6 py-4">
                   <p className="text-3xl font-black text-white">{analytics.topMatch.pct}%</p>
@@ -285,38 +291,38 @@ export default function SkillsPage() {
               </div>
 
               <div className="flex items-start gap-4 p-5 bg-white/5 rounded-[2rem] border border-white/5 max-w-xl">
-                 <Brain className="w-5 h-5 text-blue-400 shrink-0 mt-1" />
-                 <p className="text-sm font-medium text-blue-50/80 leading-relaxed italic">
-                   "{analytics.insight}"
-                 </p>
+                <Brain className="w-5 h-5 text-blue-400 shrink-0 mt-1" />
+                <p className="text-sm font-medium text-blue-50/80 leading-relaxed italic">
+                  "{analytics.insight}"
+                </p>
               </div>
             </div>
 
             <div className="flex flex-col items-center gap-4 bg-white/5 border border-white/10 p-8 rounded-[3rem] text-center min-w-[240px]">
-               <div className="relative">
-                  <div className="w-32 h-32 rounded-full border-8 border-white/5 flex items-center justify-center">
-                    <p className="text-4xl font-black text-white">{analytics.marketFit}%</p>
+              <div className="relative">
+                <div className="w-32 h-32 rounded-full border-8 border-white/5 flex items-center justify-center">
+                  <p className="text-4xl font-black text-white">{analytics.marketFit}%</p>
+                </div>
+                <svg className="absolute top-0 left-0 w-32 h-32 -rotate-90">
+                  <circle
+                    cx="64" cy="64" r="56"
+                    fill="none" stroke="currentColor"
+                    strokeWidth="8" className="text-blue-500"
+                    strokeDasharray="351.8"
+                    strokeDashoffset={351.8 - (351.8 * analytics.marketFit) / 100}
+                  />
+                </svg>
+              </div>
+              <div>
+                <div className="flex items-center justify-center gap-1.5 group cursor-help relative">
+                  <p className="text-[10px] font-black text-blue-300 uppercase tracking-widest">Market Fit Score</p>
+                  <HelpCircle className="w-3 h-3 text-blue-300/50" />
+                  <div className="absolute bottom-full mb-2 w-48 p-2 bg-slate-900 text-[10px] text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                    Average alignment across all roles in the system.
                   </div>
-                  <svg className="absolute top-0 left-0 w-32 h-32 -rotate-90">
-                    <circle 
-                      cx="64" cy="64" r="56" 
-                      fill="none" stroke="currentColor" 
-                      strokeWidth="8" className="text-blue-500"
-                      strokeDasharray="351.8"
-                      strokeDashoffset={351.8 - (351.8 * analytics.marketFit) / 100}
-                    />
-                  </svg>
-               </div>
-               <div>
-                  <div className="flex items-center justify-center gap-1.5 group cursor-help relative">
-                    <p className="text-[10px] font-black text-blue-300 uppercase tracking-widest">Market Fit Score</p>
-                    <HelpCircle className="w-3 h-3 text-blue-300/50" />
-                    <div className="absolute bottom-full mb-2 w-48 p-2 bg-slate-900 text-[10px] text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
-                      Average alignment across all roles in the system.
-                    </div>
-                  </div>
-                  <p className="text-white/50 text-xs mt-1 font-medium italic">Calculated using weighted skill alignment</p>
-               </div>
+                </div>
+                <p className="text-white/50 text-xs mt-1 font-medium italic">Calculated using weighted skill alignment</p>
+              </div>
             </div>
           </div>
         </div>
@@ -357,7 +363,7 @@ export default function SkillsPage() {
                   </div>
                 </div>
                 <div className="w-full bg-slate-100 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden shadow-inner">
-                  <div 
+                  <div
                     className={clsx(
                       "h-full transition-all duration-1000 ease-out",
                       r.pct >= 50 ? "bg-emerald-500" : "bg-rose-500",
@@ -367,13 +373,13 @@ export default function SkillsPage() {
                   />
                 </div>
                 <div className="mt-2 flex flex-wrap gap-1.5">
-                   <span className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Strategic Gaps:</span>
-                   {r.gaps.slice(0, 3).map(g => (
-                     <span key={g} className="text-[9px] font-bold text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 px-1.5 py-0.5 rounded border border-slate-100 dark:border-slate-700 transition-opacity">
-                        {g}
-                     </span>
-                   ))}
-                   {r.gaps.length > 3 && <span className="text-[9px] font-bold text-slate-400">+{r.gaps.length - 3}</span>}
+                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Strategic Gaps:</span>
+                  {r.gaps.slice(0, 3).map(g => (
+                    <span key={g} className="text-[9px] font-bold text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 px-1.5 py-0.5 rounded border border-slate-100 dark:border-slate-700 transition-opacity">
+                      {g}
+                    </span>
+                  ))}
+                  {r.gaps.length > 3 && <span className="text-[9px] font-bold text-slate-400">+{r.gaps.length - 3}</span>}
                 </div>
               </div>
             ))}
@@ -382,70 +388,70 @@ export default function SkillsPage() {
 
         {/* ── 3. STRATEGIC ROADMAP (SIMULATION) ───────────────────────── */}
         <section className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2.5rem] p-8 shadow-sm">
-           <div className="flex items-center gap-3 mb-8">
-              <TrendingUp className="w-5 h-5 text-indigo-600" />
-              <h2 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">Growth Roadmap</h2>
-           </div>
+          <div className="flex items-center gap-3 mb-8">
+            <TrendingUp className="w-5 h-5 text-indigo-600" />
+            <h2 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">Growth Roadmap</h2>
+          </div>
 
-           <div className="space-y-4">
-              {analytics.recommendations.map(rec => {
-                const isSimulated = simulatedSkills.includes(rec.skill);
-                return (
-                  <div 
-                    key={rec.skill} 
-                    className={clsx(
-                      "flex items-center justify-between p-5 rounded-3xl border transition-all duration-500",
-                      isSimulated 
-                        ? "bg-blue-600 border-blue-500 text-white shadow-xl shadow-blue-600/30 -translate-y-1" 
-                        : "bg-slate-50 dark:bg-slate-800/50 border-transparent hover:border-slate-200 dark:hover:border-slate-700 group"
-                    )}
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className={clsx(
-                        "w-12 h-12 rounded-2xl flex items-center justify-center transition-all",
-                        isSimulated ? "bg-white/20 text-white scale-110" : "bg-white dark:bg-slate-900 text-slate-300 group-hover:text-blue-600"
-                      )}>
-                        {isSimulated ? <Check className="w-6 h-6" /> : <Zap className="w-6 h-6" />}
-                      </div>
-                      <div>
-                        <p className={clsx("text-sm font-black", isSimulated ? "text-white" : "text-slate-900 dark:text-white")}>{rec.skill}</p>
-                        <div className="flex items-center gap-2 mt-1 group/impact cursor-help relative">
-                          <p className={clsx("text-[10px] font-bold uppercase tracking-widest", isSimulated ? "text-white/80" : "text-emerald-600")}>
-                            +{rec.impact}% market reach
-                          </p>
-                          <Info className={clsx("w-3 h-3", isSimulated ? "text-white/40" : "text-slate-300")} />
-                          <div className="absolute left-0 bottom-full mb-2 w-48 p-2 bg-slate-900 text-[10px] text-white rounded-lg opacity-0 group-hover/impact:opacity-100 transition-opacity pointer-events-none z-50">
-                            Impact based on demand across roles in the system.
-                          </div>
+          <div className="space-y-4">
+            {analytics.recommendations.map(rec => {
+              const isSimulated = simulatedSkills.includes(rec.skill);
+              return (
+                <div
+                  key={rec.skill}
+                  className={clsx(
+                    "flex items-center justify-between p-5 rounded-3xl border transition-all duration-500",
+                    isSimulated
+                      ? "bg-blue-600 border-blue-500 text-white shadow-xl shadow-blue-600/30 -translate-y-1"
+                      : "bg-slate-50 dark:bg-slate-800/50 border-transparent hover:border-slate-200 dark:hover:border-slate-700 group"
+                  )}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className={clsx(
+                      "w-12 h-12 rounded-2xl flex items-center justify-center transition-all",
+                      isSimulated ? "bg-white/20 text-white scale-110" : "bg-white dark:bg-slate-900 text-slate-300 group-hover:text-blue-600"
+                    )}>
+                      {isSimulated ? <Check className="w-6 h-6" /> : <Zap className="w-6 h-6" />}
+                    </div>
+                    <div>
+                      <p className={clsx("text-sm font-black", isSimulated ? "text-white" : "text-slate-900 dark:text-white")}>{rec.skill}</p>
+                      <div className="flex items-center gap-2 mt-1 group/impact cursor-help relative">
+                        <p className={clsx("text-[10px] font-bold uppercase tracking-widest", isSimulated ? "text-white/80" : "text-emerald-600")}>
+                          +{rec.impact}% market reach
+                        </p>
+                        <Info className={clsx("w-3 h-3", isSimulated ? "text-white/40" : "text-slate-300")} />
+                        <div className="absolute left-0 bottom-full mb-2 w-48 p-2 bg-slate-900 text-[10px] text-white rounded-lg opacity-0 group-hover/impact:opacity-100 transition-opacity pointer-events-none z-50">
+                          Impact based on demand across roles in the system.
                         </div>
                       </div>
                     </div>
-
-                    <div className="flex items-center gap-2">
-                       {isSimulated && (
-                         <button 
-                           onClick={() => applySimulation(rec.skill)}
-                           className="px-4 py-2 bg-white text-blue-600 text-[10px] font-black rounded-xl hover:bg-blue-50 transition-all active:scale-95 shadow-sm"
-                         >
-                           APPLY
-                         </button>
-                       )}
-                       <button 
-                        onClick={() => toggleSimulateSkill(rec.skill)}
-                        className={clsx(
-                          "p-3 rounded-2xl transition-all",
-                          isSimulated 
-                            ? "bg-white/10 text-white hover:bg-white/20" 
-                            : "bg-white dark:bg-slate-900 text-slate-400 hover:text-blue-600 shadow-sm border border-slate-100 dark:border-slate-700"
-                        )}
-                       >
-                        {isSimulated ? <X className="w-5 h-5" /> : <PlusCircle className="w-5 h-5" />}
-                       </button>
-                    </div>
                   </div>
-                );
-              })}
-           </div>
+
+                  <div className="flex items-center gap-2">
+                    {isSimulated && (
+                      <button
+                        onClick={() => applySimulation(rec.skill)}
+                        className="px-4 py-2 bg-white text-blue-600 text-[10px] font-black rounded-xl hover:bg-blue-50 transition-all active:scale-95 shadow-sm"
+                      >
+                        APPLY
+                      </button>
+                    )}
+                    <button
+                      onClick={() => toggleSimulateSkill(rec.skill)}
+                      className={clsx(
+                        "p-3 rounded-2xl transition-all",
+                        isSimulated
+                          ? "bg-white/10 text-white hover:bg-white/20"
+                          : "bg-white dark:bg-slate-900 text-slate-400 hover:text-blue-600 shadow-sm border border-slate-100 dark:border-slate-700"
+                      )}
+                    >
+                      {isSimulated ? <X className="w-5 h-5" /> : <PlusCircle className="w-5 h-5" />}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </section>
       </div>
 
@@ -462,14 +468,14 @@ export default function SkillsPage() {
             </div>
           </div>
           <p className="text-lg font-bold text-slate-700 dark:text-slate-300 leading-relaxed max-w-xl">
-            You currently qualify for <span className="text-blue-600 dark:text-blue-400 font-black">{analytics.qualifiedCount} out of {ALL_ROLES.length}</span> roles. 
+            You currently qualify for <span className="text-blue-600 dark:text-blue-400 font-black">{analytics.qualifiedCount} out of {ALL_ROLES.length}</span> roles.
             {analytics.recommendations.length > 0 && (
               <> Adding <span className="font-black text-slate-900 dark:text-white">{analytics.recommendations[0].skill}</span> and <span className="font-black text-slate-900 dark:text-white">{analytics.recommendations[1]?.skill}</span> can unlock {ALL_ROLES.length - analytics.qualifiedCount} additional roles.</>
             )}
           </p>
         </div>
 
-        <button 
+        <button
           onClick={() => router.push('/dashboard/student/job-matches')}
           className="px-10 py-5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black rounded-[2rem] hover:scale-105 active:scale-95 transition-all shadow-2xl shadow-slate-200 dark:shadow-none flex items-center gap-3 whitespace-nowrap"
         >
@@ -481,32 +487,32 @@ export default function SkillsPage() {
       {/* Manual Input */}
       <div className="mt-12 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2.5rem] p-8 shadow-sm">
         <div className="flex flex-col md:flex-row gap-4">
-           <div className="flex-1 relative group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-blue-600 transition-colors" />
-              <input 
-                type="text"
-                placeholder="Filter your active intelligence nodes..."
-                className="w-full pl-12 pr-4 py-4 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-              />
-           </div>
-           <div className="flex-[1.5] flex gap-2">
-              <input 
-                type="text"
-                placeholder="Register new validated skill..."
-                className="flex-1 px-4 py-4 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
-                value={newSkill}
-                onChange={e => setNewSkill(e.target.value)}
-                onKeyPress={e => e.key === 'Enter' && handleAddSkill()}
-              />
-              <button 
-                onClick={handleAddSkill}
-                className="px-10 bg-blue-600 text-white font-black text-sm rounded-2xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/10"
-              >
-                Register
-              </button>
-           </div>
+          <div className="flex-1 relative group">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-blue-600 transition-colors" />
+            <input
+              type="text"
+              placeholder="Filter your active intelligence nodes..."
+              className="w-full pl-12 pr-4 py-4 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+            />
+          </div>
+          <div className="flex-[1.5] flex gap-2">
+            <input
+              type="text"
+              placeholder="Register new validated skill..."
+              className="flex-1 px-4 py-4 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+              value={newSkill}
+              onChange={e => setNewSkill(e.target.value)}
+              onKeyPress={e => e.key === 'Enter' && handleAddSkill()}
+            />
+            <button
+              onClick={handleAddSkill}
+              className="px-10 bg-blue-600 text-white font-black text-sm rounded-2xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/10"
+            >
+              Register
+            </button>
+          </div>
         </div>
       </div>
     </div>
