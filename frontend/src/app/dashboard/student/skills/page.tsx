@@ -336,7 +336,9 @@ export default function SkillsPage() {
               <Briefcase className="w-5 h-5 text-blue-600" />
               <h2 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">Weighted Match Engine</h2>
             </div>
-            <HelpCircle className="w-4 h-4 text-slate-300" title="Calculated as (sum of matched skill weights / total role weights) * 100" />
+            <div title="Calculated as (sum of matched skill weights / total role weights) * 100">
+              <HelpCircle className="w-4 h-4 text-slate-300" />
+            </div>
           </div>
 
           <div className="space-y-6">
