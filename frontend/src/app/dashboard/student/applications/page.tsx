@@ -364,7 +364,7 @@ export default function StudentApplicationsPage() {
                                   <Zap className="w-4 h-4" /> Recommendation for Growth
                                 </p>
                                 <div className="flex flex-wrap gap-2">
-                                  {app.missingSkills.map(s => (
+                                  {app.missingSkills.map((s: string) => (
                                     <span key={s} className="px-4 py-2 bg-rose-50 dark:bg-rose-900/10 text-rose-700 dark:text-rose-400 text-xs font-black rounded-xl border border-rose-100 dark:border-rose-800">
                                       Improve {s}
                                     </span>
