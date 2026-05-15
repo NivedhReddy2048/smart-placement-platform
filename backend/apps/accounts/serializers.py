@@ -11,6 +11,17 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             data['username'] = self.user.username
             data['email'] = self.user.email
             data['role'] = getattr(self.user, 'role', 'STUDENT')
+            
+            # Add onboarding status
+            try:
+                if self.user.role == 'STUDENT':
+                    data['is_onboarded'] = self.user.student_profile.is_onboarded
+                elif self.user.role == 'RECRUITER':
+                    data['is_onboarded'] = True # Recruiters are always onboarded for now
+                else:
+                    data['is_onboarded'] = True
+            except Exception:
+                data['is_onboarded'] = False
         
         return data
 
@@ -21,15 +32,11 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         fields = ('username', 'email', 'password', 'role')
 
     def create(self, validated_data):
-        from apps.core.models import StudentProfile, RecruiterProfile
+        # Profile creation is now handled automatically via signals in apps.core.signals
         user = User.objects.create_user(
             username=validated_data['username'],
             email=validated_data.get('email', ''),
             password=validated_data['password'],
             role=validated_data.get('role', User.Role.STUDENT)
         )
-        if user.role == User.Role.STUDENT:
-            StudentProfile.objects.create(user=user)
-        elif user.role == User.Role.RECRUITER:
-            RecruiterProfile.objects.create(user=user, company_name="Company To Update")
         return user

@@ -28,22 +28,11 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401) {
       console.log("401 ERROR FROM:", error.config?.url);
 
-      if (typeof window !== 'undefined') {
-        const token = localStorage.getItem('access_token');
-
-        // DEV MODE: ignore fake token
-        if (token === "test_token_123") {
-          console.warn("DEV MODE: Ignoring 401 for test token");
-          return Promise.reject(error);
-        }
-      }
-
       if (!originalRequest._retry) {
         originalRequest._retry = true;
         try {
           const refreshToken = typeof window !== 'undefined' ? localStorage.getItem('refresh_token') : null;
           if (refreshToken) {
-            // Hit our TokenRefreshView /api/auth/login/refresh/
             const res = await axios.post(`${apiClient.defaults.baseURL}/auth/login/refresh/`, {
               refresh: refreshToken
             });
@@ -53,21 +42,23 @@ apiClient.interceptors.response.use(
               if (originalRequest.headers) originalRequest.headers.Authorization = `Bearer ${res.data.access}`;
               return apiClient(originalRequest);
             }
-          } else {
-            // REAL TOKEN FAILURE
-            if (typeof window !== 'undefined') localStorage.removeItem('access_token');
           }
         } catch (_refreshError) {
-          // Absolute auth failure: Expired refresh token
+          // Absolute auth failure
           if (typeof window !== 'undefined') {
             localStorage.removeItem('access_token');
             localStorage.removeItem('refresh_token');
-            localStorage.removeItem('user');
+            localStorage.removeItem('auth_session');
+            localStorage.removeItem('user_role');
+            localStorage.removeItem('username');
+            window.location.href = '/login';
           }
         }
       } else {
-        // Already retried, still 401
-        if (typeof window !== 'undefined') localStorage.removeItem('access_token');
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('access_token');
+          window.location.href = '/login';
+        }
       }
     }
 

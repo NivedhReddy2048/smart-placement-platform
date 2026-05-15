@@ -7,5 +7,5 @@ router.register(r'postings', JobPostingViewSet)
 router.register(r'applications', ApplicationViewSet, basename='application')
 
 urlpatterns = router.urls + [
-    path("matches/", JobMatchView.as_view(), name="job-matches"),
+    path("match/", JobMatchView.as_view(), name="job-matches"),
 ]

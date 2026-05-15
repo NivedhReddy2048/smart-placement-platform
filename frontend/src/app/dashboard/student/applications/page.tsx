@@ -43,7 +43,7 @@ export default function StudentApplicationsPage() {
   useEffect(() => {
     const fetchApplications = async () => {
       try {
-        const res = await apiClient.get('/applications/');
+        const res = await apiClient.get('/jobs/applications/');
         const data = Array.isArray(res.data) ? res.data : [];
         const mapped = data.map((app: any) => ({
           id: app.id,

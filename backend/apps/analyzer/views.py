@@ -4,10 +4,13 @@ import fitz
 from rest_framework import viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 from .models import Resume
 from .serializers import ResumeSerializer
 from .tasks import parse_resume_task
 from openai import OpenAI
+from django.http import HttpResponse
+from .reports import generate_resume_report
 
 
 class ResumeViewSet(viewsets.ModelViewSet):
@@ -442,3 +445,25 @@ Return ONLY the JSON object. No markdown. No explanation outside the JSON.
 
         except Exception as e:
             return Response({"error": f"Failed to parse PDF: {str(e)}"}, status=500)
+
+class ResumeReportDownloadView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            profile = request.user.student_profile
+            resume = profile.parsed_resume
+            if not resume or not resume.analysis_data:
+                return Response({"error": "No analysis data found. Please analyze your resume first."}, status=400)
+            
+            report_stream = generate_resume_report(resume.analysis_data, request.user.username)
+            
+            response = HttpResponse(
+                report_stream.read(),
+                content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+            )
+            response['Content-Disposition'] = 'attachment; filename="resume-analysis-report.docx"'
+            return response
+        except Exception as e:
+            return Response({"error": f"Failed to generate report: {str(e)}"}, status=500)
+

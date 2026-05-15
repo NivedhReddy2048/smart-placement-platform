@@ -34,10 +34,10 @@ class ApplicationViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         # Students see only their own applications
-        return Application.objects.filter(student=self.request.user.studentprofile)
+        return Application.objects.filter(student=self.request.user.student_profile)
 
     def perform_create(self, serializer):
-        student = self.request.user.studentprofile
+        student = self.request.user.student_profile
         job = serializer.validated_data.get("job")
 
         if Application.objects.filter(student=student, job=job).exists():
@@ -63,9 +63,12 @@ class JobMatchView(APIView):
         except StudentProfile.DoesNotExist:
             return Response({"error": "Student profile not found"}, status=404)
 
-        # Get student skills
-        user_skills = Skill.objects.filter(user=user).values_list("name", flat=True)
-        user_skills = [s.lower().strip() for s in user_skills]
+        # Get student skills from both core.Skill and skills.StudentSkill
+        from apps.skills.models import StudentSkill
+        user_skills = list(Skill.objects.filter(user=user).values_list("name", flat=True))
+        student_skills = list(StudentSkill.objects.filter(student=student).values_list("skill__name", flat=True))
+        
+        all_skill_names = list(set([s.lower().strip() for s in (user_skills + student_skills)]))
 
         jobs = JobPosting.objects.filter(is_active=True)
 
@@ -75,7 +78,7 @@ class JobMatchView(APIView):
             # Use title + description for matching
             job_text = f"{job.title} {job.description}".lower()
 
-            match_count = sum(1 for skill in user_skills if skill in job_text)
+            match_count = sum(1 for skill in all_skill_names if skill in job_text)
 
             if match_count > 0:
                 matched_jobs.append({

@@ -82,15 +82,8 @@ export default function Navbar() {
       </div>
 
       <div className="flex items-center gap-2 sm:gap-4">
-        {/* Search - Desktop only */}
-        <div className="hidden lg:flex items-center bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-1.5 rounded-xl w-64 group focus-within:bg-white dark:focus-within:bg-slate-900 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
-          <Search className="h-4 w-4 text-slate-400 group-focus-within:text-blue-500" />
-          <input 
-            type="text" 
-            placeholder="Search matching jobs..." 
-            className="ml-2 bg-transparent border-none text-sm font-medium text-slate-700 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none w-full"
-          />
-        </div>
+        {/* Navigation placeholder or empty space */}
+        <div className="hidden lg:block w-64"></div>
 
         {/* Notifications */}
         <div className="relative" ref={notifyRef}>

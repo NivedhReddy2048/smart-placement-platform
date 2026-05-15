@@ -29,12 +29,13 @@ export default function LoginPage() {
       console.log("RESPONSE DATA:", res.data);
 
       // ✅ EXTRACT DATA
-      const { access, refresh, role, username: responseUsername } = res.data;
+      const { access, refresh, role, username: responseUsername, is_onboarded: isOnboarded } = res.data;
 
       const userData = {
         name: responseUsername || username,
         email: res.data.email || "",
-        role: role || "student"
+        role: role || "student",
+        isOnboarded: !!isOnboarded
       };
 
       // ✅ STORE AUTH DATA
@@ -43,6 +44,7 @@ export default function LoginPage() {
       localStorage.setItem("auth_session", JSON.stringify(userData));
       localStorage.setItem("user_role", role || userData.role);
       localStorage.setItem("username", responseUsername || username);
+      localStorage.setItem("is_onboarded", String(!!isOnboarded));
 
       console.log("SUCCESS: AUTH DATA STORED 💾");
       console.log("ACCESS TOKEN:", localStorage.getItem("access_token")?.substring(0, 10) + "...");
@@ -134,9 +136,19 @@ export default function LoginPage() {
               </button>
             </form>
 
-            <div className="mt-8 pt-8 border-t border-slate-100 dark:border-slate-800 text-center">
+            <div className="mt-8 pt-8 border-t border-slate-100 dark:border-slate-800 text-center space-y-4">
               <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
                 Use valid registered credentials
+              </p>
+              <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">
+                Don't have an account?{" "}
+                <button 
+                  type="button"
+                  onClick={() => router.push('/register')}
+                  className="text-blue-600 dark:text-blue-400 font-bold hover:underline"
+                >
+                  Create Account
+                </button>
               </p>
             </div>
           </div>

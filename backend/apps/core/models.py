@@ -9,6 +9,7 @@ class StudentProfile(models.Model):
     graduation_year = models.IntegerField(blank=True, null=True)
     degree = models.CharField(max_length=255, blank=True, null=True)
     resume = models.FileField(upload_to='resumes/', blank=True, null=True)
+    is_onboarded = models.BooleanField(default=False)
     
     def __str__(self):
         return f"Student Profile: {self.user.username}"

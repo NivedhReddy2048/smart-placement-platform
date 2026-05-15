@@ -348,10 +348,10 @@ export default function StudentDashboardPage() {
   const router = useRouter();
 
   useEffect(() => {
-    console.log("DASHBOARD TOKEN:", localStorage.getItem("token"));
+    console.log("DASHBOARD TOKEN:", localStorage.getItem("access_token"));
     const load = async () => {
       try {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('access_token');
         // Token presence is guaranteed by ProtectedRoute
 
         const [dashRes, skillsRes] = await Promise.all([
@@ -361,6 +361,12 @@ export default function StudentDashboardPage() {
 
         setData(dashRes.data);
         setSkills(skillsRes.data || []);
+
+        // ✅ ONBOARDING REDIRECT
+        if (dashRes.data && dashRes.data.is_onboarded === false) {
+          console.log("NEW USER DETECTED -> REDIRECTING TO ONBOARDING 🚀");
+          router.replace('/dashboard/student/edit-profile');
+        }
       } catch {
         setError('Failed to load dashboard. Please refresh.');
       } finally {

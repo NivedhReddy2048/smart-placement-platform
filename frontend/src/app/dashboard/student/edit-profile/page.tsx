@@ -14,10 +14,11 @@ import {
   Save
 } from 'lucide-react';
 import clsx from 'clsx';
+import apiClient from '@/lib/axios';
 
 export default function EditProfilePage() {
   const router = useRouter();
-  const { user, setUser } = useUser();
+  const { user, updateUser } = useUser();
   
   const [formData, setFormData] = useState({
     name: user.name || '',
@@ -29,6 +30,21 @@ export default function EditProfilePage() {
 
   const [skillInput, setSkillInput] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [profileId, setProfileId] = useState<number | null>(null);
+
+  React.useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await apiClient.get('/core/students/dashboard/');
+        const d = res.data;
+        setProfileId(d.profile_id);
+        // We could also populate initial values from here if they exist
+      } catch (err) {
+        console.error("Failed to fetch dashboard/profile data", err);
+      }
+    };
+    fetchProfile();
+  }, []);
 
   const addSkill = () => {
     if (skillInput.trim() && !formData.skills.includes(skillInput.trim())) {
@@ -48,19 +64,36 @@ export default function EditProfilePage() {
     }
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!profileId) return;
     setIsSaving(true);
     
-    // Simulate API delay
-    setTimeout(() => {
-      setUser({
-        ...user,
-        ...formData
+    try {
+      // ✅ REAL API CALL
+      await apiClient.patch(`/core/profiles/${profileId}/`, {
+        is_onboarded: true,
+        degree: formData.role, // Simple mapping for now
+        // college_name: "...", // Add if needed
       });
+
+      // Update local state
+      updateUser({
+        ...formData,
+        isOnboarded: true
+      });
+      
+      // Also update localStorage for AuthContext if needed
+      localStorage.setItem('is_onboarded', 'true');
+
+      console.log("PROFILE UPDATED SUCCESSFULLY ✅");
+      router.push('/dashboard/student');
+    } catch (err) {
+      console.error("FAILED TO SAVE PROFILE:", err);
+      alert("Failed to save profile. Please try again.");
+    } finally {
       setIsSaving(false);
-      router.push('/dashboard/student/profile');
-    }, 800);
+    }
   };
 
   const isValid = formData.name && formData.role;

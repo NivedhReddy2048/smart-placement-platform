@@ -187,9 +187,11 @@ class StudentDashboardAPIView(APIView):
         }
 
         return Response({
+            "profile_id": profile.id,
             "verdict": verdict,
             "summary": summary,
             "has_resume": has_resume,
+            "is_onboarded": profile.is_onboarded,
             "career_progress": {
                 "resume_strength": resume_strength,
                 "ats_score": ats_score_val,

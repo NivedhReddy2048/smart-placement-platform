@@ -10,7 +10,7 @@ class StudentSkillViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return StudentSkill.objects.filter(student=self.request.user.studentprofile)
+        return StudentSkill.objects.filter(student=self.request.user.student_profile)
 
     def create(self, request, *args, **kwargs):
         # We must intercept create() to inject the required ForeignKeys into request.data
@@ -20,7 +20,7 @@ class StudentSkillViewSet(viewsets.ModelViewSet):
             raise ValidationError({"name": "Skill name is required"})
 
         try:
-            student = request.user.studentprofile
+            student = request.user.student_profile
         except Exception:
             raise ValidationError("Student profile not found")
 
@@ -46,7 +46,7 @@ class StudentSkillViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         try:
-            student = self.request.user.studentprofile
+            student = self.request.user.student_profile
         except Exception:
             raise ValidationError("Student profile not found")
 
