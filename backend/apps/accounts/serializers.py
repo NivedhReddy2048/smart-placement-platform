@@ -1,13 +1,27 @@
 from rest_framework import serializers
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import User
-from apps.core.models import StudentProfile, RecruiterProfile
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        
+        # Add custom data safely
+        if self.user:
+            data['username'] = self.user.username
+            data['email'] = self.user.email
+            data['role'] = getattr(self.user, 'role', 'STUDENT')
+        
+        return data
 
 class UserRegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
     class Meta:
         model = User
         fields = ('username', 'email', 'password', 'role')
+
     def create(self, validated_data):
+        from apps.core.models import StudentProfile, RecruiterProfile
         user = User.objects.create_user(
             username=validated_data['username'],
             email=validated_data.get('email', ''),
