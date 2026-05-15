@@ -16,3 +16,10 @@ out/
 
 # Logs
 *.log
+
+backend/staticfiles/
+*.pyc
+__pycache__/
+.env.local
+db.sqlite3
+node_modules/
