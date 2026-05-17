@@ -1,34 +1,33 @@
 import os
 import django
 
-# Set the default settings module for Django
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
-
-# Initialize Django
 django.setup()
 
 from django.contrib.auth import get_user_model
 
-def create_superuser_from_env():
-    User = get_user_model()
-    
-    # Read environment variables
-    username = os.environ.get('DJANGO_SUPERUSER_USERNAME')
-    email = os.environ.get('DJANGO_SUPERUSER_EMAIL')
-    password = os.environ.get('DJANGO_SUPERUSER_PASSWORD')
-    
-    # Check if all required environment variables are set
-    if not username or not email or not password:
-        print("Superuser environment variables are missing. Skipping superuser creation.")
-        return
+User = get_user_model()
 
-    # Check if a user with this username or email already exists
-    if User.objects.filter(username=username).exists() or User.objects.filter(email=email).exists():
-        print("Superuser already exists")
-    else:
-        # Create the superuser
-        User.objects.create_superuser(username=username, email=email, password=password)
+username = os.environ.get("DJANGO_SUPERUSER_USERNAME")
+email = os.environ.get("DJANGO_SUPERUSER_EMAIL")
+password = os.environ.get("DJANGO_SUPERUSER_PASSWORD")
+
+if username and email and password:
+    user, created = User.objects.get_or_create(
+        username=username,
+        defaults={"email": email}
+    )
+
+    # FORCE UPDATE PASSWORD EVERY DEPLOY
+    user.set_password(password)
+    user.is_staff = True
+    user.is_superuser = True
+    user.save()
+
+    if created:
         print("Superuser created")
+    else:
+        print("Superuser password updated")
 
-if __name__ == "__main__":
-    create_superuser_from_env()
+else:
+    print("Missing superuser environment variables")
