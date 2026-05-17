@@ -18,6 +18,7 @@ if os.getenv("RENDER_EXTERNAL_HOSTNAME"):
     ALLOWED_HOSTS.append(os.getenv("RENDER_EXTERNAL_HOSTNAME"))
 
 INSTALLED_APPS = [
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -98,14 +99,12 @@ USE_I18N = True
 USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-# Use Whitenoise for serving static files efficiently in production
-if not DEBUG:
-    # Use CompressedStaticFilesStorage instead of Manifest version to prevent 500 crashes if manifest is missing
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
-else:
-    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+
+# Use Whitenoise for serving static files efficiently in development and production
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -146,3 +145,36 @@ CELERY_TIMEZONE = TIME_ZONE
 # Local development ease: Run tasks synchronously if no Redis
 CELERY_TASK_ALWAYS_EAGER = DEBUG
 CELERY_TASK_EAGER_PROPAGATES = DEBUG
+
+# JAZZMIN Configuration
+JAZZMIN_SETTINGS = {
+    "site_title": "Smart Placement Admin",
+    "site_header": "Smart Placement Platform",
+    "site_brand": "Smart Placement",
+    "welcome_sign": "Welcome to Smart Placement Admin Panel",
+    "search_model": ["accounts.User"],
+    "show_ui_builder": False,
+    "navigation_expanded": True,
+    "icons": {
+        "accounts.User": "fas fa-users",
+        "accounts.Profile": "fas fa-id-card",
+        "skills.Skill": "fas fa-star",
+        "jobs.Job": "fas fa-briefcase",
+        "jobs.Application": "fas fa-file-alt",
+        "community.Post": "fas fa-comments",
+    },
+    "default_icon_parents": "fas fa-chevron-circle-right",
+    "default_icon_children": "fas fa-circle",
+}
+
+JAZZMIN_UI_TWEAKS = {
+    "theme": "darkly",
+    "dark_mode_theme": "darkly",
+    "navbar": "navbar-dark",
+    "sidebar": "sidebar-dark-primary",
+    "navbar_small_text": False,
+    "body_small_text": False,
+    "brand_small_text": False,
+    "brand_colour": False,
+    "accent": "accent-primary",
+}
