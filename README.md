@@ -210,7 +210,95 @@ https://smart-placement-platform.onrender.com/admin/login/?next=/admin/
 ### ✅ Recruiter + Student Workflow
 ### ✅ Admin Management System
 
-## 📸 Screenshots
+# 📸 Screenshots
+
+## 🔐 Student Login
+
+![Student Login](https://github.com/NivedhReddy2048/smart-placement-platform/blob/main/Screenshots/Login.png?raw=true)
+
+---
+
+## 📝 Student Registration
+
+![Student Registration](https://github.com/NivedhReddy2048/smart-placement-platform/blob/main/Screenshots/Registration.png?raw=true)
+
+---
+
+## 📊 Student Dashboard
+
+![Dashboard](https://github.com/NivedhReddy2048/smart-placement-platform/blob/main/Screenshots/Dashboard.png?raw=true)
+
+---
+
+## 📄 Resume Analyzer
+
+![Resume Analyzer](https://github.com/NivedhReddy2048/smart-placement-platform/blob/main/Screenshots/Resume%20analyzer.png?raw=true)
+
+---
+
+## 🎯 Job Matches
+
+![Job Matches](https://github.com/NivedhReddy2048/smart-placement-platform/blob/main/Screenshots/job%20matches.png?raw=true)
+
+---
+
+## 🧠 Skill Intelligence
+
+![Skill Intelligence](https://github.com/NivedhReddy2048/smart-placement-platform/blob/main/Screenshots/Skill%20Intelegence.png?raw=true)
+
+---
+
+## 💬 Messaging System
+
+![Messages](https://github.com/NivedhReddy2048/smart-placement-platform/blob/main/Screenshots/messages.png?raw=true)
+
+---
+
+## 🌍 Community Platform
+
+![Community](https://github.com/NivedhReddy2048/smart-placement-platform/blob/main/Screenshots/community.png?raw=true)
+
+---
+
+## 🤖 AI Mentor
+
+![AI Mentor](https://github.com/NivedhReddy2048/smart-placement-platform/blob/main/Screenshots/AI%20mentor.png?raw=true)
+
+---
+
+## 💼 Applications Portal
+
+![Applications](https://github.com/NivedhReddy2048/smart-placement-platform/blob/main/Screenshots/Applications.png?raw=true)
+
+---
+
+# 🏢 Recruiter Module
+
+## 🔐 Recruiter Login
+
+![Recruiter Login](https://github.com/NivedhReddy2048/smart-placement-platform/blob/main/Screenshots/Recruitor%20login.png?raw=true)
+
+---
+
+## 📝 Recruiter Registration
+
+![Recruiter Registration](https://github.com/NivedhReddy2048/smart-placement-platform/blob/main/Screenshots/Recruitor%20Registration.png?raw=true)
+
+---
+
+## 📊 Recruiter Dashboard
+
+![Recruiter Dashboard](https://github.com/NivedhReddy2048/smart-placement-platform/blob/main/Screenshots/Recruitor%20dashboard.png?raw=true)
+
+---
+
+# ⚙️ Admin Panel
+
+## 🛠️ Django Admin Dashboard
+
+![Admin Dashboard](https://github.com/NivedhReddy2048/smart-placement-platform/blob/main/Screenshots/Admin%20dashboard.png?raw=true)
+
+---
 
 
 ## 🎨 Modern Authentication UI
@@ -219,8 +307,8 @@ https://smart-placement-platform.onrender.com/admin/login/?next=/admin/
 ### 🧠 AI Job Match System
 ### ⚙️ Django Admin Panel
 
-##👨‍💻 Developed By
-##🚀 Nivedh Reddy
+## 👨‍💻 Developed By
+## 🚀 Nivedh Reddy
 
 ## Passionate Full Stack & AI Developer focused on:
 
