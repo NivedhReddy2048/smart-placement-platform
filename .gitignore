@@ -23,3 +23,6 @@ __pycache__/
 .env.local
 db.sqlite3
 node_modules/
+
+*.log
+server_log.txt
