@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useAuth } from './AuthContext';
 
 interface User {
   isOnboarded: boolean;
@@ -32,32 +33,53 @@ interface UserContextType {
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: ReactNode }) {
+  const { user: authUser, isAuthenticated } = useAuth();
   const [user, setUserState] = useState<User>(initialUser);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load from localStorage on mount
+  // Sync with AuthContext and reset on logout
   useEffect(() => {
+    if (!isAuthenticated || !authUser) {
+      setUserState(initialUser);
+      setIsLoading(false);
+      return;
+    }
+
+    // Attempt to hydrate from localStorage ONLY if it belongs to the current auth user
     const savedUser = localStorage.getItem('user_data');
     if (savedUser) {
       try {
-        setUserState(JSON.parse(savedUser));
+        const parsed = JSON.parse(savedUser);
+        if (parsed.email === authUser.email) {
+          setUserState(parsed);
+        } else {
+          // Stale data detected from a different user!
+          setUserState({ ...initialUser, ...authUser });
+          localStorage.removeItem('user_data');
+        }
       } catch (e) {
-        console.error("Failed to parse user data", e);
+        setUserState({ ...initialUser, ...authUser });
       }
+    } else {
+      setUserState({ ...initialUser, ...authUser });
     }
     setIsLoading(false);
-  }, []);
+  }, [authUser, isAuthenticated]);
 
   // Sync to localStorage on update
   const setUser = (newUser: User) => {
     setUserState(newUser);
-    localStorage.setItem('user_data', JSON.stringify(newUser));
+    if (isAuthenticated) {
+      localStorage.setItem('user_data', JSON.stringify(newUser));
+    }
   };
 
   const updateUser = (updates: Partial<User>) => {
     setUserState((prev) => {
       const newUser = { ...prev, ...updates };
-      localStorage.setItem('user_data', JSON.stringify(newUser));
+      if (isAuthenticated) {
+        localStorage.setItem('user_data', JSON.stringify(newUser));
+      }
       return newUser;
     });
   };

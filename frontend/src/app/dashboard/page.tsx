@@ -8,8 +8,16 @@ export default function DashboardIndexPage() {
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    // Redirect to the default student dashboard
-    router.replace('/dashboard/student');
+    const role = localStorage.getItem('user_role');
+    const token = localStorage.getItem('access_token');
+
+    if (!token || !role) {
+      router.replace('/login');
+    } else if (role.toUpperCase() === 'RECRUITER') {
+      router.replace('/dashboard/recruiter');
+    } else {
+      router.replace('/dashboard/student');
+    }
   }, [router]);
 
   return (

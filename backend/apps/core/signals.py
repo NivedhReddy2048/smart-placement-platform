@@ -11,4 +11,6 @@ def create_user_profile(sender, instance, created, **kwargs):
         if role == 'STUDENT':
             StudentProfile.objects.get_or_create(user=instance)
         elif role == 'RECRUITER':
-            RecruiterProfile.objects.get_or_create(user=instance, defaults={'company_name': 'Company To Update'})
+            # Avoid conflict with registration serializer which also creates/updates profile
+            if not hasattr(instance, 'recruiter_profile'):
+                RecruiterProfile.objects.get_or_create(user=instance, defaults={'company_name': 'Pending...'})

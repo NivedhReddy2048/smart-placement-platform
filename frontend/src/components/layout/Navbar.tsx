@@ -40,7 +40,12 @@ export default function Navbar() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const dropdownItems = [
+  const dashboardPath = authUser?.role?.toUpperCase() === 'RECRUITER' ? '/dashboard/recruiter' : '/dashboard/student';
+
+  const dropdownItems = authUser?.role?.toUpperCase() === 'RECRUITER' ? [
+    { label: 'Recruiter Dashboard', icon: User, href: '/dashboard/recruiter' },
+    { label: 'Manage Jobs', icon: Settings, href: '/dashboard/recruiter' },
+  ] : [
     { label: 'View Profile', icon: User, href: '/dashboard/student/profile' },
     { label: 'Edit Profile', icon: UserCircle, href: '/dashboard/student/edit-profile' },
     { label: 'Settings', icon: Settings, href: '/dashboard/student/settings' },
@@ -69,7 +74,7 @@ export default function Navbar() {
 
         {/* Platform Logo */}
         <Link 
-          href="/dashboard/student" 
+          href={dashboardPath} 
           className="flex items-center gap-2 group transition-transform active:scale-95"
         >
           <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-200">
@@ -126,14 +131,14 @@ export default function Navbar() {
           >
             <div className="hidden sm:block text-right mr-1">
               <p className="text-xs font-black text-slate-900 dark:text-white leading-none">
-                {authUser?.name || user.name || 'Student User'}
+                {authUser?.name || user.name || 'User'}
               </p>
               <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-wider">
-                {authUser?.role || user.role || 'STUDENT'}
+                {authUser?.role || user.role || 'GUEST'}
               </p>
             </div>
             <div className="w-8 h-8 rounded-xl bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center text-blue-700 dark:text-blue-300 font-bold border-2 border-white dark:border-slate-800 shadow-sm overflow-hidden">
-              {user.name ? user.name.charAt(0) : <UserCircle className="w-6 h-6" />}
+              {(authUser?.name || user.name) ? (authUser?.name || user.name).charAt(0).toUpperCase() : <UserCircle className="w-6 h-6" />}
             </div>
             <ChevronDown className={clsx("h-4 w-4 text-slate-400 transition-transform", isDropdownOpen && "rotate-180")} />
           </button>
@@ -142,8 +147,8 @@ export default function Navbar() {
           {isDropdownOpen && (
             <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl shadow-slate-200/50 dark:shadow-none py-2 animate-in fade-in slide-in-from-top-2 duration-200">
               <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 mb-1 sm:hidden">
-                <p className="text-sm font-black text-slate-900 dark:text-white">{user.name || 'Student User'}</p>
-                <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mt-0.5">student@platform.ai</p>
+                <p className="text-sm font-black text-slate-900 dark:text-white">{authUser?.name || user.name || 'User'}</p>
+                <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mt-0.5">{authUser?.email || 'authenticated@session'}</p>
               </div>
               
               {dropdownItems.map((item) => (

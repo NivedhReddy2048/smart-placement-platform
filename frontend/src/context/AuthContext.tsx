@@ -1,12 +1,13 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 
 interface User {
   name: string;
   email: string;
   role: string;
+  isOnboarded?: boolean;
 }
 
 interface AuthContextType {
@@ -15,6 +16,7 @@ interface AuthContextType {
   isLoading: boolean;
   login: (userData: User) => void;
   logout: () => void;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -22,63 +24,84 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load session from localStorage on mount
-  useEffect(() => {
+  const refreshUser = useCallback(async () => {
+    if (typeof window === 'undefined') return;
+    
     const token = localStorage.getItem('access_token');
     
     if (token) {
-      const savedAuth = localStorage.getItem('auth_session');
-      if (savedAuth) {
-        try {
-          setUser(JSON.parse(savedAuth));
-        } catch (e) {
-          console.error("Failed to restore session", e);
-          localStorage.removeItem('auth_session');
-        }
-      } else {
-        // Fallback user if token exists but session data is missing
-        setUser({
-          name: "User",
-          email: "",
-          role: "student"
-        });
+      try {
+        // Import apiClient dynamically to avoid circular dependencies if any
+        const { default: apiClient } = await import('@/lib/axios');
+        const res = await apiClient.get('/auth/me/');
+        
+        const userData = {
+          name: res.data.username,
+          email: res.data.email,
+          role: res.data.role,
+          isOnboarded: res.data.is_onboarded
+        };
+        
+        setUser(userData);
+        setIsAuthenticated(true);
+        localStorage.setItem('auth_session', JSON.stringify(userData));
+        localStorage.setItem('user_role', userData.role);
+      } catch (e) {
+        console.error("Session verification failed", e);
+        // If token is invalid or expired, clear everything
+        logout();
       }
+    } else {
+      setUser(null);
+      setIsAuthenticated(false);
     }
-    
     setIsLoading(false);
   }, []);
 
-  // Debugging logs for session status
   useEffect(() => {
-    console.log("TOKEN:", localStorage.getItem("access_token"));
-    console.log("USER:", localStorage.getItem("auth_session"));
-  }, []);
+    refreshUser();
+  }, [refreshUser]);
 
   const login = (userData: User) => {
     setUser(userData);
+    setIsAuthenticated(true);
     localStorage.setItem('auth_session', JSON.stringify(userData));
-    // Token is typically set in the login page handler, but we ensure state is updated here
+    localStorage.setItem('user_role', userData.role);
   };
 
-  const logout = () => {
+  const logout = useCallback(() => {
+    if (typeof window === 'undefined') return;
+
     setUser(null);
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-    localStorage.removeItem('user_role');
-    localStorage.removeItem('auth_session');
+    setIsAuthenticated(false);
+    
+    // Clear ALL auth and profile related keys
+    const keysToRemove = [
+      'access_token',
+      'refresh_token',
+      'user_role',
+      'auth_session',
+      'username',
+      'is_onboarded',
+      'user_data' // CRITICAL: This was missing and causing the leak
+    ];
+    
+    keysToRemove.forEach(key => localStorage.removeItem(key));
+    
     router.replace('/login');
-  };
+  }, [router]);
 
   return (
     <AuthContext.Provider value={{ 
       user, 
-      // isAuthenticated strictly depends on the token presence
-      isAuthenticated: typeof window !== 'undefined' ? !!localStorage.getItem('access_token') : false, 
+      isAuthenticated, 
       isLoading, 
       login, 
-      logout 
+      logout,
+      refreshUser
     }}>
       {children}
     </AuthContext.Provider>

@@ -177,7 +177,8 @@ class StudentDashboardAPIView(APIView):
 
         # ── 9. Skill gap analysis ─────────────────────────────────────────
         strengths = analysis.get("strengths", skill_names[:3])
-        missing_skills = analysis.get("missing_skills", [])
+        raw_missing = analysis.get("missing_skills", [])
+        missing_skills = [s for s in raw_missing if s.lower().strip() not in [n.lower().strip() for n in skill_names]]
 
         # ── 10. Recent activity ───────────────────────────────────────────
         recent_activity = {

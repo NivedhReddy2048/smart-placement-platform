@@ -22,7 +22,8 @@ import {
   ArrowRight,
   HelpCircle,
   LockOpen,
-  Trophy
+  Trophy,
+  Loader2
 } from "lucide-react";
 import clsx from 'clsx';
 import apiClient from "@/lib/axios";
@@ -51,7 +52,7 @@ function calculateWeightedMatch(userSkills: string[], role: string) {
   roleSkills.forEach(skill => {
     const weight = weights[skill];
     totalWeight += weight;
-    if (userSkills.some(u => u.toLowerCase() === skill.toLowerCase())) {
+    if (userSkills.some(u => typeof u === 'string' && u.toLowerCase() === skill.toLowerCase())) {
       matchedWeight += weight;
     }
   });
@@ -74,7 +75,7 @@ function getStrategicGaps(userSkills: string[], role: string) {
   const roleSkills = Object.keys(weights);
 
   return roleSkills
-    .filter(skill => !userSkills.some(u => u.toLowerCase() === skill.toLowerCase()))
+    .filter(skill => !userSkills.some(u => typeof u === 'string' && u.toLowerCase() === skill.toLowerCase()))
     .sort((a, b) => (weights[b] || 1) - (weights[a] || 1));
 }
 
@@ -82,7 +83,7 @@ function getStrategicGaps(userSkills: string[], role: string) {
 
 export default function SkillsPage() {
   const router = useRouter();
-  const { user, updateUser, isLoading: profileLoading } = useUser();
+  const { user, updateUser } = useUser();
   const [skillsData, setSkillsData] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -97,11 +98,18 @@ export default function SkillsPage() {
       setLoading(true);
       const res = await apiClient.get('/skills/student-skills/');
       const data = Array.isArray(res.data) ? res.data : [];
-      // Assuming res.data returns [{ name: "React" }, { name: "Python" }]
-      setSkillsData(data.map((s: any) => s.name || s.skill_name || s));
+      
+      const sanitized = data.map((s: any) => {
+        if (typeof s === 'string') return s;
+        return s.skill_name || s.name || (s.skill && s.skill.name) || "";
+      }).filter(s => !!s);
+      
+      setSkillsData(sanitized);
     } catch (err) {
       console.error("Failed to fetch skills:", err);
-      setSkillsData(user.skills || []); // Fallback
+      // Fallback and sanitize
+      const fallback = Array.isArray(user.skills) ? user.skills : [];
+      setSkillsData(fallback.map(s => typeof s === 'string' ? s : String(s)).filter(s => !!s));
     } finally {
       setLoading(false);
     }
@@ -111,10 +119,8 @@ export default function SkillsPage() {
     fetchSkills();
   }, []);
 
-  // Combined Active Skills
   const activeSkills = useMemo(() => [...skillsData, ...simulatedSkills], [skillsData, simulatedSkills]);
 
-  // Base Analytics (for comparison)
   const baseAnalytics = useMemo(() => {
     const roleMatches = ALL_ROLES.map(role => ({
       role,
@@ -123,7 +129,6 @@ export default function SkillsPage() {
     return { roleMatches };
   }, [skillsData]);
 
-  // Current Analytics (Real-time Simulation Driven)
   const analytics = useMemo(() => {
     const roleMatches = ALL_ROLES.map(role => {
       const currentPct = calculateWeightedMatch(activeSkills, role);
@@ -150,10 +155,11 @@ export default function SkillsPage() {
     const qualifiedCount = roleMatches.filter(r => r.pct >= 50).length;
     const baseQualifiedCount = baseAnalytics.roleMatches.filter(r => r.pct >= 50).length;
 
-    // Smart Insight Generation
-    const topRole = roleMatches[0];
+    const topRole = roleMatches[0] || { role: "N/A", pct: 0, gaps: [] };
     const topGap = topRole.gaps[0];
-    const insight = `You are strongest in ${topRole.role} roles due to ${skillsData.length > 0 ? skillsData[0] : 'your expertise'}. Adding ${topGap || 'more specialized skills'} will significantly unlock ${roleMatches.find(r => r.pct < 50)?.role || 'advanced'} opportunities.`;
+    const insight = skillsData.length > 0 
+      ? `You are strongest in ${topRole.role} roles. Adding ${topGap || 'specialized technical nodes'} will maximize your market value.`
+      : "Initialize your technical nodes to start AI career mapping.";
 
     return {
       roleMatches,
@@ -177,7 +183,6 @@ export default function SkillsPage() {
     const isAdding = !simulatedSkills.includes(skill);
 
     if (isAdding) {
-      // Find roles that will improve
       const rolesToHighlight = analytics.roleMatches
         .filter(r => {
           const nextPct = calculateWeightedMatch([...activeSkills, skill], r.role);
@@ -211,48 +216,47 @@ export default function SkillsPage() {
     try {
       await apiClient.post('/skills/student-skills/', { name: trimmed });
       setNewSkill("");
-      showToast("Skill added!");
+      showToast("Skill registered successfully!");
       fetchSkills();
     } catch (err) {
       console.error("Failed to add skill:", err);
     }
   };
 
-  if (loading) return <div className="p-10 text-center font-bold text-slate-400">Initializing Engine...</div>;
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
+        <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
+        <p className="text-slate-400 font-black text-xs uppercase tracking-[0.3em]">Calibrating Intelligence Engine</p>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 sm:p-6 md:p-8 max-w-5xl mx-auto pb-24 animate-in fade-in duration-700">
-
-      {/* Simulation Feedback Badge */}
       {analytics.unlockedCount > 0 && (
-        <div className="fixed top-24 left-1/2 -translate-x-1/2 bg-emerald-600 text-white px-6 py-2 rounded-full shadow-2xl z-50 flex items-center gap-2 animate-bounce font-black text-xs tracking-widest uppercase">
+        <div className="fixed top-24 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-8 py-3 rounded-full shadow-2xl z-50 flex items-center gap-3 animate-bounce font-black text-[10px] tracking-[0.2em] uppercase border border-blue-400">
           <LockOpen className="w-4 h-4" />
-          +{analytics.unlockedCount} Role Unlocked!
+          {analytics.unlockedCount} New Role Unlocked!
         </div>
       )}
 
-      {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-6">
         <div>
-          <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">Skill Intelligence</h1>
+          <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight uppercase italic">Intelligence Mapping</h1>
           <p className="text-slate-500 dark:text-slate-400 font-medium mt-2 flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-blue-500" />
-            AI-powered growth simulation and gap analysis
+            AI-driven growth path and competitive analysis
           </p>
         </div>
 
         <div className="flex items-center gap-3">
-          {simulatedSkills.length > 0 && (
-            <button onClick={() => setSimulatedSkills([])} className="p-3 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/10 rounded-2xl transition-all" title="Reset Simulation">
-              <RotateCcw className="w-5 h-5" />
-            </button>
-          )}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-2 flex gap-4">
-            <div className="px-4 py-1 text-center border-r border-slate-100 dark:border-slate-800">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-2 flex gap-4 shadow-sm">
+            <div className="px-5 py-1 text-center border-r border-slate-100 dark:border-slate-800">
               <p className="text-xl font-black text-slate-900 dark:text-white">{skillsData.length}</p>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Real</p>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Active</p>
             </div>
-            <div className="px-4 py-1 text-center">
+            <div className="px-5 py-1 text-center">
               <p className={clsx("text-xl font-black transition-all", simulatedSkills.length > 0 ? "text-blue-600 scale-110" : "text-slate-300")}>
                 {simulatedSkills.length > 0 ? `+${simulatedSkills.length}` : '0'}
               </p>
@@ -262,194 +266,116 @@ export default function SkillsPage() {
         </div>
       </div>
 
-      {/* ── 1. BEST ROLE MATCH & SUMMARY ──────────────────────────────── */}
-      <div className="bg-gradient-to-br from-slate-900 to-indigo-950 rounded-[2.5rem] p-8 sm:p-10 mb-10 shadow-2xl relative overflow-hidden group">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl -mr-48 -mt-48 transition-opacity group-hover:opacity-100 opacity-50" />
-
-        <div className="relative z-10">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
+      <div className="bg-slate-900 dark:bg-slate-900/50 rounded-[3rem] p-10 mb-12 shadow-2xl border border-slate-800 relative overflow-hidden group">
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-10">
             <div className="space-y-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-blue-500/20 rounded-2xl">
-                  <Trophy className="w-7 h-7 text-blue-400" />
+              <div className="flex items-center gap-4">
+                <div className="p-4 bg-blue-600 rounded-2xl shadow-xl shadow-blue-500/20">
+                  <Trophy className="w-8 h-8 text-white" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-black text-white tracking-tight">Best Role Match</h2>
-                  <p className="text-blue-300/60 text-[10px] font-black uppercase tracking-[0.2em]">{analytics.topMatch.role}</p>
+                  <h2 className="text-2xl font-black text-white uppercase italic">{analytics.topMatch.role}</h2>
+                  <p className="text-blue-400 text-[10px] font-black uppercase tracking-widest mt-1">Primary Skill Alignment</p>
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-4">
-                <div className="bg-white/5 border border-white/10 rounded-2xl px-6 py-4">
-                  <p className="text-3xl font-black text-white">{analytics.topMatch.pct}%</p>
-                  <p className="text-[10px] font-black text-blue-300 uppercase tracking-widest mt-1">Alignment</p>
+              <div className="flex gap-6">
+                <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
+                  <p className="text-4xl font-black text-white">{analytics.topMatch.pct}%</p>
+                  <p className="text-[10px] font-black text-blue-300 uppercase tracking-[0.2em] mt-2">Accuracy</p>
                 </div>
-                <div className="bg-white/5 border border-white/10 rounded-2xl px-6 py-4">
-                  <p className="text-3xl font-black text-emerald-400">{skillsData.length}</p>
-                  <p className="text-[10px] font-black text-emerald-300/70 uppercase tracking-widest mt-1">Core Skills Detected</p>
+                <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
+                  <p className="text-4xl font-black text-emerald-400">{skillsData.length}</p>
+                  <p className="text-[10px] font-black text-emerald-400/70 uppercase tracking-[0.2em] mt-2">Verified</p>
                 </div>
               </div>
 
-              <div className="flex items-start gap-4 p-5 bg-white/5 rounded-[2rem] border border-white/5 max-w-xl">
-                <Brain className="w-5 h-5 text-blue-400 shrink-0 mt-1" />
-                <p className="text-sm font-medium text-blue-50/80 leading-relaxed italic">
-                  "{analytics.insight}"
-                </p>
-              </div>
+              <p className="text-blue-50/70 text-base font-medium leading-relaxed max-w-xl italic">
+                "{analytics.insight}"
+              </p>
             </div>
 
-            <div className="flex flex-col items-center gap-4 bg-white/5 border border-white/10 p-8 rounded-[3rem] text-center min-w-[240px]">
+            <div className="flex flex-col items-center gap-6 bg-white/5 border border-white/10 p-10 rounded-[4rem] min-w-[280px]">
               <div className="relative">
-                <div className="w-32 h-32 rounded-full border-8 border-white/5 flex items-center justify-center">
+                <div className="w-36 h-36 rounded-full border-8 border-white/5 flex items-center justify-center">
                   <p className="text-4xl font-black text-white">{analytics.marketFit}%</p>
                 </div>
-                <svg className="absolute top-0 left-0 w-32 h-32 -rotate-90">
+                <svg className="absolute top-0 left-0 w-36 h-36 -rotate-90">
                   <circle
-                    cx="64" cy="64" r="56"
+                    cx="72" cy="72" r="64"
                     fill="none" stroke="currentColor"
-                    strokeWidth="8" className="text-blue-500"
-                    strokeDasharray="351.8"
-                    strokeDashoffset={351.8 - (351.8 * analytics.marketFit) / 100}
+                    strokeWidth="8" className="text-blue-600"
+                    strokeDasharray="402"
+                    strokeDashoffset={402 - (402 * analytics.marketFit) / 100}
                   />
                 </svg>
               </div>
-              <div>
-                <div className="flex items-center justify-center gap-1.5 group cursor-help relative">
-                  <p className="text-[10px] font-black text-blue-300 uppercase tracking-widest">Market Fit Score</p>
-                  <HelpCircle className="w-3 h-3 text-blue-300/50" />
-                  <div className="absolute bottom-full mb-2 w-48 p-2 bg-slate-900 text-[10px] text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
-                    Average alignment across all roles in the system.
-                  </div>
-                </div>
-                <p className="text-white/50 text-xs mt-1 font-medium italic">Calculated using weighted skill alignment</p>
-              </div>
+              <p className="text-[10px] font-black text-blue-300 uppercase tracking-[0.3em]">Market Reach Index</p>
             </div>
-          </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-        {/* ── 2. ROLE MATCHING ENGINE ──────────────────────────────────── */}
-        <section className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2.5rem] p-8 shadow-sm">
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-3">
-              <Briefcase className="w-5 h-5 text-blue-600" />
-              <h2 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">Weighted Match Engine</h2>
-            </div>
-            <div title="Calculated as (sum of matched skill weights / total role weights) * 100">
-              <HelpCircle className="w-4 h-4 text-slate-300" />
-            </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 mb-12">
+        <section className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[3rem] p-8 shadow-sm">
+          <div className="flex items-center gap-3 mb-10">
+            <Briefcase className="w-6 h-6 text-blue-600" />
+            <h2 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight italic">Role Precision</h2>
           </div>
 
-          <div className="space-y-6">
+          <div className="space-y-8">
             {analytics.roleMatches.map(r => (
-              <div key={r.role} className={clsx(
-                "relative transition-all duration-500 rounded-2xl p-2 -m-2",
-                highlightedRoles.includes(r.role) && "bg-emerald-500/5 ring-1 ring-emerald-500/20"
-              )}>
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm font-black text-slate-700 dark:text-slate-300 flex items-center gap-2">
-                    {r.role}
-                    {r.isUnlocked && (
-                      <span className="text-[9px] bg-blue-600 text-white px-1.5 py-0.5 rounded uppercase font-black animate-pulse">Unlocked</span>
-                    )}
-                  </p>
-                  <div className="flex items-center gap-2">
-                    {r.improvement > 0 && (
-                      <span className="text-[10px] font-black text-emerald-600">+{r.improvement}%</span>
-                    )}
-                    <span className={clsx(
-                      "text-sm font-black transition-all duration-700",
-                      r.pct >= 50 ? "text-emerald-600" : "text-rose-500"
-                    )}>{r.pct}%</span>
+              <div key={r.role}>
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-sm font-black text-slate-900 dark:text-white uppercase italic">{r.role}</p>
+                  <div className="flex items-center gap-3">
+                    {r.improvement > 0 && <span className="text-xs font-black text-emerald-600">+{r.improvement}%</span>}
+                    <span className={clsx("text-base font-black italic", r.pct >= 50 ? "text-emerald-500" : "text-rose-500")}>{r.pct}%</span>
                   </div>
                 </div>
-                <div className="w-full bg-slate-100 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden shadow-inner">
+                <div className="w-full bg-slate-100 dark:bg-slate-800 h-3 rounded-full overflow-hidden shadow-inner">
                   <div
-                    className={clsx(
-                      "h-full transition-all duration-1000 ease-out",
-                      r.pct >= 50 ? "bg-emerald-500" : "bg-rose-500",
-                      highlightedRoles.includes(r.role) && "animate-pulse"
-                    )}
+                    className={clsx("h-full transition-all duration-1000", r.pct >= 50 ? "bg-emerald-500" : "bg-rose-500")}
                     style={{ width: `${r.pct}%` }}
                   />
                 </div>
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Strategic Gaps:</span>
-                  {r.gaps.slice(0, 3).map(g => (
-                    <span key={g} className="text-[9px] font-bold text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 px-1.5 py-0.5 rounded border border-slate-100 dark:border-slate-700 transition-opacity">
-                      {g}
-                    </span>
-                  ))}
-                  {r.gaps.length > 3 && <span className="text-[9px] font-bold text-slate-400">+{r.gaps.length - 3}</span>}
+                <div className="mt-3 flex flex-wrap gap-2">
+                   {r.gaps.slice(0, 3).map(g => (
+                     <span key={g} className="text-[9px] font-black uppercase bg-slate-50 dark:bg-slate-800 text-slate-400 px-2 py-1 rounded border border-slate-100 dark:border-slate-700">
+                        {g}
+                     </span>
+                   ))}
                 </div>
               </div>
             ))}
           </div>
         </section>
 
-        {/* ── 3. STRATEGIC ROADMAP (SIMULATION) ───────────────────────── */}
-        <section className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2.5rem] p-8 shadow-sm">
-          <div className="flex items-center gap-3 mb-8">
-            <TrendingUp className="w-5 h-5 text-indigo-600" />
-            <h2 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">Growth Roadmap</h2>
+        <section className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[3rem] p-8 shadow-sm">
+          <div className="flex items-center gap-3 mb-10">
+            <TrendingUp className="w-6 h-6 text-indigo-600" />
+            <h2 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight italic">Strategic Gaps</h2>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-5">
             {analytics.recommendations.map(rec => {
               const isSimulated = simulatedSkills.includes(rec.skill);
               return (
-                <div
-                  key={rec.skill}
-                  className={clsx(
-                    "flex items-center justify-between p-5 rounded-3xl border transition-all duration-500",
-                    isSimulated
-                      ? "bg-blue-600 border-blue-500 text-white shadow-xl shadow-blue-600/30 -translate-y-1"
-                      : "bg-slate-50 dark:bg-slate-800/50 border-transparent hover:border-slate-200 dark:hover:border-slate-700 group"
-                  )}
-                >
-                  <div className="flex items-center gap-4">
-                    <div className={clsx(
-                      "w-12 h-12 rounded-2xl flex items-center justify-center transition-all",
-                      isSimulated ? "bg-white/20 text-white scale-110" : "bg-white dark:bg-slate-900 text-slate-300 group-hover:text-blue-600"
-                    )}>
-                      {isSimulated ? <Check className="w-6 h-6" /> : <Zap className="w-6 h-6" />}
+                <div key={rec.skill} className={clsx(
+                  "p-6 rounded-[2rem] border-2 transition-all duration-500 flex items-center justify-between group",
+                  isSimulated ? "bg-blue-600 border-blue-500 text-white shadow-2xl -translate-y-1" : "bg-slate-50 dark:bg-slate-800/50 border-transparent hover:border-slate-200"
+                )}>
+                  <div className="flex items-center gap-5">
+                    <div className={clsx("w-14 h-14 rounded-2xl flex items-center justify-center transition-all shadow-sm", isSimulated ? "bg-white/20" : "bg-white dark:bg-slate-900 text-slate-300")}>
+                      {isSimulated ? <Check /> : <Zap />}
                     </div>
                     <div>
-                      <p className={clsx("text-sm font-black", isSimulated ? "text-white" : "text-slate-900 dark:text-white")}>{rec.skill}</p>
-                      <div className="flex items-center gap-2 mt-1 group/impact cursor-help relative">
-                        <p className={clsx("text-[10px] font-bold uppercase tracking-widest", isSimulated ? "text-white/80" : "text-emerald-600")}>
-                          +{rec.impact}% market reach
-                        </p>
-                        <Info className={clsx("w-3 h-3", isSimulated ? "text-white/40" : "text-slate-300")} />
-                        <div className="absolute left-0 bottom-full mb-2 w-48 p-2 bg-slate-900 text-[10px] text-white rounded-lg opacity-0 group-hover/impact:opacity-100 transition-opacity pointer-events-none z-50">
-                          Impact based on demand across roles in the system.
-                        </div>
-                      </div>
+                      <p className="text-base font-black uppercase italic">{rec.skill}</p>
+                      <p className={clsx("text-[10px] font-black uppercase tracking-widest mt-1", isSimulated ? "text-blue-100" : "text-emerald-500")}>Impact: +{rec.impact}%</p>
                     </div>
                   </div>
-
-                  <div className="flex items-center gap-2">
-                    {isSimulated && (
-                      <button
-                        onClick={() => applySimulation(rec.skill)}
-                        className="px-4 py-2 bg-white text-blue-600 text-[10px] font-black rounded-xl hover:bg-blue-50 transition-all active:scale-95 shadow-sm"
-                      >
-                        APPLY
-                      </button>
-                    )}
-                    <button
-                      onClick={() => toggleSimulateSkill(rec.skill)}
-                      className={clsx(
-                        "p-3 rounded-2xl transition-all",
-                        isSimulated
-                          ? "bg-white/10 text-white hover:bg-white/20"
-                          : "bg-white dark:bg-slate-900 text-slate-400 hover:text-blue-600 shadow-sm border border-slate-100 dark:border-slate-700"
-                      )}
-                    >
-                      {isSimulated ? <X className="w-5 h-5" /> : <PlusCircle className="w-5 h-5" />}
-                    </button>
-                  </div>
+                  <button onClick={() => toggleSimulateSkill(rec.skill)} className={clsx("p-4 rounded-2xl transition-all", isSimulated ? "bg-white/10 hover:bg-white/20" : "bg-white dark:bg-slate-900 text-slate-400 shadow-sm")}>
+                    {isSimulated ? <X /> : <PlusCircle />}
+                  </button>
                 </div>
               );
             })}
@@ -457,65 +383,24 @@ export default function SkillsPage() {
         </section>
       </div>
 
-      {/* ── 4. CAREER TRAJECTORY INSIGHTS ───────────────────────────── */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[3rem] p-10 shadow-xl flex flex-col lg:flex-row items-center justify-between gap-10">
-        <div className="flex-1 space-y-4">
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 bg-blue-600 rounded-[2rem] flex items-center justify-center text-white shadow-2xl shadow-blue-500/40">
-              <TrendingUp className="w-8 h-8" />
-            </div>
-            <div>
-              <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Career Trajectory</h3>
-              <p className="text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest text-xs">Real-Time Placement Outlook</p>
-            </div>
-          </div>
-          <p className="text-lg font-bold text-slate-700 dark:text-slate-300 leading-relaxed max-w-xl">
-            You currently qualify for <span className="text-blue-600 dark:text-blue-400 font-black">{analytics.qualifiedCount} out of {ALL_ROLES.length}</span> roles.
-            {analytics.recommendations.length > 0 && (
-              <> Adding <span className="font-black text-slate-900 dark:text-white">{analytics.recommendations[0].skill}</span> and <span className="font-black text-slate-900 dark:text-white">{analytics.recommendations[1]?.skill}</span> can unlock {ALL_ROLES.length - analytics.qualifiedCount} additional roles.</>
-            )}
-          </p>
-        </div>
-
-        <button
-          onClick={() => router.push('/dashboard/student/job-matches')}
-          className="px-10 py-5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black rounded-[2rem] hover:scale-105 active:scale-95 transition-all shadow-2xl shadow-slate-200 dark:shadow-none flex items-center gap-3 whitespace-nowrap"
-        >
-          View Job Matches
-          <ArrowRight className="w-5 h-5" />
-        </button>
-      </div>
-
-      {/* Manual Input */}
-      <div className="mt-12 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2.5rem] p-8 shadow-sm">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1 relative group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-blue-600 transition-colors" />
-            <input
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[3rem] p-10 flex flex-col md:flex-row items-center justify-between gap-8 shadow-sm">
+         <div className="flex-1">
+            <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase italic mb-2 tracking-tight">Intelligence Input</h3>
+            <p className="text-slate-500 text-sm font-medium">Add verified technical nodes to your professional profile.</p>
+         </div>
+         <div className="flex-1 flex gap-3 w-full">
+            <input 
               type="text"
-              placeholder="Filter your active intelligence nodes..."
-              className="w-full pl-12 pr-4 py-4 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-            />
-          </div>
-          <div className="flex-[1.5] flex gap-2">
-            <input
-              type="text"
-              placeholder="Register new validated skill..."
-              className="flex-1 px-4 py-4 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+              placeholder="e.g. AWS, Docker..."
+              className="flex-1 px-6 py-4 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-900 dark:text-white outline-none focus:ring-2 ring-blue-500/20"
               value={newSkill}
               onChange={e => setNewSkill(e.target.value)}
               onKeyPress={e => e.key === 'Enter' && handleAddSkill()}
             />
-            <button
-              onClick={handleAddSkill}
-              className="px-10 bg-blue-600 text-white font-black text-sm rounded-2xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/10"
-            >
+            <button onClick={handleAddSkill} className="px-10 bg-blue-600 text-white font-black text-xs uppercase tracking-widest rounded-2xl hover:bg-blue-500 transition-all shadow-xl shadow-blue-500/20">
               Register
             </button>
-          </div>
-        </div>
+         </div>
       </div>
     </div>
   );

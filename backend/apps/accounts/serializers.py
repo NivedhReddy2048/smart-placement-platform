@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from django.db import transaction
 from .models import User
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -27,16 +28,45 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 class UserRegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
+    company_name = serializers.CharField(required=False, write_only=True)
+    
     class Meta:
         model = User
-        fields = ('username', 'email', 'password', 'role')
+        fields = ('username', 'email', 'password', 'role', 'company_name')
+
+    def validate(self, attrs):
+        role = attrs.get('role', User.Role.STUDENT)
+        if role == User.Role.RECRUITER and not attrs.get('company_name'):
+            raise serializers.ValidationError({"company_name": "Company name is required for recruiters."})
+        return attrs
 
     def create(self, validated_data):
-        # Profile creation is now handled automatically via signals in apps.core.signals
-        user = User.objects.create_user(
-            username=validated_data['username'],
-            email=validated_data.get('email', ''),
-            password=validated_data['password'],
-            role=validated_data.get('role', User.Role.STUDENT)
-        )
-        return user
+        role = validated_data.get('role', User.Role.STUDENT)
+        company_name = validated_data.pop('company_name', None)
+        
+        with transaction.atomic():
+            user = User.objects.create_user(
+                username=validated_data['username'],
+                email=validated_data.get('email', ''),
+                password=validated_data['password'],
+                role=role
+            )
+
+            if role == User.Role.RECRUITER:
+                from apps.core.models import RecruiterProfile
+                RecruiterProfile.objects.update_or_create(
+                    user=user, 
+                    defaults={'company_name': company_name}
+                )
+            
+            return user
+
+class ChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)
+    confirm_password = serializers.CharField(required=True)
+
+    def validate(self, attrs):
+        if attrs['new_password'] != attrs['confirm_password']:
+            raise serializers.ValidationError({"confirm_password": "New passwords do not match."})
+        return attrs

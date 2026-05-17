@@ -1,87 +1,60 @@
 # 🚀 Smart Placement Platform
 
-An **AI-powered full-stack placement management system** that helps students prepare, apply, and track job opportunities while enabling intelligent insights and automation.
+A production-grade, AI-powered recruitment ecosystem designed to bridge the gap between students and recruiters with high-precision matching and actionable career intelligence.
 
----
+## ✨ Core Value Proposition
+- **For Students**: Real-time "Shortlisting Probability" based on resume analysis and skill gaps.
+- **For Recruiters**: Automated candidate ranking and pipeline management with "Match Score" intelligence.
+- **For Everyone**: A seamless, synchronized workflow from job posting to hiring.
 
-## 🧠 Key Features
+## 🛠 Tech Stack
 
-### 🔐 Authentication
-- JWT-based secure login & signup  
-- Role-based access (Student / Admin ready)  
+### Backend (Python/Django)
+- **Django REST Framework**: High-performance API architecture.
+- **JWT Authentication**: Secure, stateless session management.
+- **PostgreSQL**: Robust relational data persistence.
+- **NLP Matching Engine**: Heuristic-based skill extraction and job-role alignment.
 
-### 👤 Student Dashboard
-- Personalized dashboard with real-time data  
-- Profile management & settings  
+### Frontend (TypeScript/Next.js)
+- **Next.js 14 (App Router)**: Optimized React framework for scale.
+- **Lucide React**: Premium iconography system.
+- **Tailwind CSS**: Custom "Dark Premium" design system with glassmorphism effects.
+- **Axios**: Centralized API service with interceptors for token management.
 
-### 🧠 Skill Intelligence
-- Add & manage skills  
-- Backend-powered skill tracking  
+## 🏗 Architecture
+The platform follows a decoupled micro-service-ready architecture:
+1. **Auth Service**: Manages RBAC (Student/Recruiter/Admin).
+2. **Matching Engine**: Calculates real-time scores by comparing student nodes against job role requirements.
+3. **Analytics Pipeline**: Aggregates recruiter metrics and student career progress.
 
-### 💼 Job Management
-- View job listings  
-- Intelligent job matching based on skills  
-- Apply to jobs with duplicate prevention  
+## 🚀 Quick Start
 
-### 📊 Analytics
-- Live dashboard insights  
-- Track applications, jobs, and engagement  
+### Prerequisites
+- Python 3.10+
+- Node.js 18+
+- PostgreSQL (Local or Render)
 
-### 🔔 Notifications
-- Auto-generated on job applications  
-- User-specific & real-time  
+### Backend Setup
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py runserver
+```
 
-### 📄 Resume Analyzer (AI)
-- Upload resume  
-- Analyze skills & recommendations  
+### Frontend Setup
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
-### 🎯 Mock Interview System
-- Start mock interviews  
-- Submit answers  
-- Get feedback & results  
+## 📸 Workflows
+- **Onboarding**: Students complete a high-fidelity profile to unlock AI matching.
+- **Recruitment**: Recruiters post jobs, track applicants, and update hiring statuses in real-time.
+- **Intelligence**: Integrated "What-If Simulator" helps students identify the highest-impact skills to learn.
 
-### 💬 Messaging System
-- User-to-user communication  
-- Secure & scoped conversations  
-
-### 🌐 Community
-- Create posts  
-- Interact with other users  
-
-### 🤖 AI Mentor
-- Ask career-related questions  
-- Get instant guidance  
-
----
-
-## 🏗️ Tech Stack
-
-### 🔹 Frontend
-- React (Next.js)  
-- TypeScript  
-- Tailwind CSS  
-- Axios (API communication)  
-
-### 🔹 Backend
-- Django  
-- Django REST Framework  
-- JWT Authentication (SimpleJWT)  
-
-### 🔹 Database
-- SQLite (Development)  
-- PostgreSQL (Production - Render)  
-
-### 🔹 Deployment
-- Backend: Render  
-- Frontend: Vercel  
-
----
-
-## ⚠️ Notes
-- SQLite is used for development (data resets on redeploy)
-- Used PostgreSQL in production 
-## 📌 Future Improvements
-- Real-time notifications (WebSockets)
-- Advanced AI recommendations
-- Admin analytics dashboard
-- Resume scoring improvements
+## 📜 License
+MIT

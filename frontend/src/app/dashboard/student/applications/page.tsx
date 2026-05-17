@@ -25,7 +25,7 @@ import {
   MoreVertical,
   Calendar,
   MousePointer2
-} from "@/components/Icons";
+} from "lucide-react";
 import clsx from 'clsx';
 
 import apiClient from "@/lib/axios";
@@ -47,14 +47,14 @@ export default function StudentApplicationsPage() {
         const data = Array.isArray(res.data) ? res.data : [];
         const mapped = data.map((app: any) => ({
           id: app.id,
-          jobTitle: `Job #${app.job}`,
-          company: "Recruiter",
-          location: "Remote",
+          jobTitle: app.job_title || `Job #${app.job}`,
+          company: app.recruiter_company_name || "Enterprise Partner",
+          location: app.job_location || "Remote",
           appliedDate: new Date(app.applied_at || app.created_at).toLocaleDateString(),
           status: app.status,
           matchScore: Math.floor(app.match_score || 0),
-          matchedSkills: [],
-          missingSkills: [],
+          matchedSkills: app.matched_skills || [],
+          missingSkills: app.missing_skills || [],
           resumeScore: 80,
           probability: Math.floor(app.match_score || 0)
         }));
@@ -71,9 +71,9 @@ export default function StudentApplicationsPage() {
   // Stats Logic
   const stats = useMemo(() => ({
     total: applications.length,
-    interviews: applications.filter(a => a.status === "Interview" || a.status === "SHORTLISTED").length,
-    offers: applications.filter(a => a.status === "Offer" || a.status === "HIRED").length,
-    rejected: applications.filter(a => a.status === "Rejected" || a.status === "REJECTED").length
+    interviews: applications.filter(a => a.status === "INTERVIEW" || a.status === "SHORTLISTED").length,
+    offers: applications.filter(a => a.status === "HIRED").length,
+    rejected: applications.filter(a => a.status === "REJECTED").length
   }), [applications]);
 
   // Filter & Sort Logic
@@ -93,9 +93,10 @@ export default function StudentApplicationsPage() {
 
   const getStatusStyle = (status: string) => {
     switch (status) {
-      case "Offer": return "bg-emerald-500/10 text-emerald-500 border-emerald-500/20";
-      case "Interview": return "bg-amber-500/10 text-amber-500 border-amber-500/20";
-      case "Rejected": return "bg-rose-500/10 text-rose-500 border-rose-500/20";
+      case "HIRED": return "bg-emerald-500/10 text-emerald-500 border-emerald-500/20";
+      case "INTERVIEW": return "bg-amber-500/10 text-amber-500 border-amber-500/20";
+      case "REJECTED": return "bg-rose-500/10 text-rose-500 border-rose-500/20";
+      case "SHORTLISTED": return "bg-blue-500/10 text-blue-500 border-blue-500/20";
       default: return "bg-blue-500/10 text-blue-500 border-blue-500/20";
     }
   };
@@ -218,7 +219,12 @@ export default function StudentApplicationsPage() {
                 const isExpanded = expandedId === app.id;
                 const matchStyles = getMatchClasses(app.matchScore);
                 const statusStyle = getStatusStyle(app.status);
-                const currentStepIdx = timelineSteps.indexOf(app.status === "Rejected" ? "Applied" : app.status);
+                const currentStepIdx = timelineSteps.indexOf(
+                  app.status === "REJECTED" ? "Applied" : 
+                  app.status === "HIRED" ? "Offer" :
+                  app.status === "INTERVIEW" ? "Interview" :
+                  app.status === "SHORTLISTED" ? "Shortlisted" : "Applied"
+                );
 
                 return (
                   <div

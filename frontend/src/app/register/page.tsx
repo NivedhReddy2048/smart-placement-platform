@@ -13,6 +13,7 @@ export default function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('STUDENT');
+  const [companyName, setCompanyName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -26,18 +27,33 @@ export default function RegisterPage() {
         username: username.trim(),
         email: email.trim(),
         password: password.trim(),
-        role: role
+        role: role,
+        company_name: role === 'RECRUITER' ? companyName.trim() : undefined
       });
 
-      console.log("REGISTRATION SUCCESS 📥", res.data);
+
       alert("Account created successfully! Please login.");
       router.push('/login');
     } catch (err: any) {
       console.error("REGISTRATION ERROR:", err.response?.data);
-      const errorMessage = err.response?.data?.username?.[0] || 
-                           err.response?.data?.email?.[0] || 
-                           err.response?.data?.detail || 
-                           "Registration failed. Please try again.";
+      
+      let errorMessage = "Registration failed. Please try again.";
+      
+      if (err.response?.data) {
+        const data = err.response.data;
+        // Extract the first error message from the response object
+        const firstKey = Object.keys(data)[0];
+        const firstError = data[firstKey];
+        
+        if (Array.isArray(firstError)) {
+          errorMessage = `${firstKey.charAt(0).toUpperCase() + firstKey.slice(1)}: ${firstError[0]}`;
+        } else if (typeof firstError === 'string') {
+          errorMessage = firstError;
+        } else if (data.detail) {
+          errorMessage = data.detail;
+        }
+      }
+      
       setError(errorMessage);
       setIsSubmitting(false);
     }
@@ -108,34 +124,47 @@ export default function RegisterPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">I am a</label>
+              <label className="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Account Type</label>
               <div className="grid grid-cols-2 gap-3">
-                <button
+                <button 
                   type="button"
                   onClick={() => setRole('STUDENT')}
                   className={clsx(
-                    "py-3 rounded-xl text-sm font-bold border transition-all",
-                    role === 'STUDENT' 
-                      ? "bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-500/20" 
-                      : "bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700"
+                    "py-3 text-xs font-black rounded-xl border transition-all",
+                    role === 'STUDENT' ? "bg-blue-600 border-blue-600 text-white" : "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500"
                   )}
                 >
                   Student
                 </button>
-                <button
+                <button 
                   type="button"
                   onClick={() => setRole('RECRUITER')}
                   className={clsx(
-                    "py-3 rounded-xl text-sm font-bold border transition-all",
-                    role === 'RECRUITER' 
-                      ? "bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-500/20" 
-                      : "bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700"
+                    "py-3 text-xs font-black rounded-xl border transition-all",
+                    role === 'RECRUITER' ? "bg-blue-600 border-blue-600 text-white" : "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500"
                   )}
                 >
                   Recruiter
                 </button>
               </div>
             </div>
+
+            {role === 'RECRUITER' && (
+              <div className="space-y-2 animate-in slide-in-from-top-2 duration-300">
+                <label className="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Company Name</label>
+                <div className="relative">
+                  <ShieldCheck className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <input
+                    type="text"
+                    required
+                    className="w-full pl-12 pr-4 py-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                    placeholder="Acme Corp"
+                    value={companyName}
+                    onChange={e => setCompanyName(e.target.value)}
+                  />
+                </div>
+              </div>
+            )}
 
             <button
               type="submit"

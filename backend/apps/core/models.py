@@ -8,6 +8,9 @@ class StudentProfile(models.Model):
     college_name = models.CharField(max_length=255, blank=True, null=True)
     graduation_year = models.IntegerField(blank=True, null=True)
     degree = models.CharField(max_length=255, blank=True, null=True)
+    bio = models.TextField(blank=True, null=True)
+    industry = models.CharField(max_length=100, blank=True, null=True)
+    experience_level = models.CharField(max_length=50, blank=True, null=True)
     resume = models.FileField(upload_to='resumes/', blank=True, null=True)
     is_onboarded = models.BooleanField(default=False)
     

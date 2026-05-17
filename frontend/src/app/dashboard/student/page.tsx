@@ -348,7 +348,7 @@ export default function StudentDashboardPage() {
   const router = useRouter();
 
   useEffect(() => {
-    console.log("DASHBOARD TOKEN:", localStorage.getItem("access_token"));
+
     const load = async () => {
       try {
         const token = localStorage.getItem('access_token');
@@ -364,7 +364,7 @@ export default function StudentDashboardPage() {
 
         // ✅ ONBOARDING REDIRECT
         if (dashRes.data && dashRes.data.is_onboarded === false) {
-          console.log("NEW USER DETECTED -> REDIRECTING TO ONBOARDING 🚀");
+
           router.replace('/dashboard/student/edit-profile');
         }
       } catch {
@@ -487,7 +487,7 @@ export default function StudentDashboardPage() {
 
       {/* ── HIRING PREDICTION ────────────────────────────────────────────── */}
       {!loading && data?.has_resume && (
-        <div className={`rounded-3xl border-2 p-6 shadow-sm ${riskBg}`}>
+        <div className={`rounded-3xl border-2 p-6 shadow-sm ${riskBg} dark:bg-slate-900/40 dark:border-slate-800`}>
           <div className="flex items-start justify-between gap-4 mb-3">
             <div className="flex items-center gap-2">
               <Gauge className="w-5 h-5 text-gray-700" />
@@ -510,7 +510,7 @@ export default function StudentDashboardPage() {
 
       {/* ── 2. CRITICAL BLOCKERS ── */}
       {!loading && data?.critical_blockers && data.critical_blockers.length > 0 && (
-        <div className="bg-white border-2 border-rose-200 rounded-3xl p-6 sm:p-8 shadow-sm">
+        <div className="bg-white dark:bg-slate-900 border-2 border-rose-200 dark:border-rose-900/30 rounded-3xl p-6 sm:p-8 shadow-sm">
           <div className="flex items-center justify-between mb-1">
             <h2 className="text-lg font-extrabold text-gray-900 flex items-center gap-2">
               <AlertTriangle className="w-5 h-5 text-rose-500" />Critical Blockers
@@ -524,10 +524,10 @@ export default function StudentDashboardPage() {
               const sevCls = sev==='High'?'bg-rose-600 text-white':sev==='Medium'?'bg-amber-500 text-white':'bg-gray-400 text-white';
               const consequence = sev==='High'?'Shortlist probability drops ~40% without this fix':sev==='Medium'?'Reduces ATS pass rate by ~25%':'Minor impact — fix after high-severity issues';
               return (
-                <div key={i} className={`flex items-start gap-3 rounded-2xl p-4 border-l-4 ${
-                  sev==='High'?'bg-rose-50 border-l-rose-600 border border-rose-100':
-                  sev==='Medium'?'bg-amber-50 border-l-amber-500 border border-amber-100':
-                  'bg-gray-50 border-l-gray-400 border border-gray-100'}`}>
+                <div key={i} className={`flex items-start gap-3 rounded-2xl p-4 border-l-4 transition-colors ${
+                  sev==='High'?'bg-rose-50 dark:bg-rose-950/20 border-l-rose-600 border border-rose-100 dark:border-rose-900/20':
+                  sev==='Medium'?'bg-amber-50 dark:bg-amber-950/20 border-l-amber-500 border border-amber-100 dark:border-amber-900/20':
+                  'bg-gray-50 dark:bg-slate-800 border-l-gray-400 border border-gray-100 dark:border-slate-700'}`}>
                   <div className="flex flex-col items-center gap-1 shrink-0">
                     <div className="w-6 h-6 bg-rose-600 text-white text-xs font-black rounded-full flex items-center justify-center">{i+1}</div>
                     <span className={`text-[9px] font-black px-1.5 py-0.5 rounded ${sevCls}`}>{sev}</span>
@@ -601,7 +601,7 @@ export default function StudentDashboardPage() {
           <p className="text-gray-500 text-xs font-semibold mb-5">Each fix below boosts your score — cumulative impact shown on right.</p>
           <div className="space-y-3">
             {enrichedActions.map((a, i) => (
-              <div key={i} className="bg-gradient-to-r from-indigo-50 to-white border border-indigo-100 rounded-2xl px-5 py-4">
+              <div key={i} className="bg-gradient-to-r from-indigo-50 to-white dark:from-slate-800 dark:to-slate-900 border border-indigo-100 dark:border-slate-700 rounded-2xl px-5 py-4">
                 <div className="flex items-center gap-3 mb-1.5">
                   <span className="shrink-0 w-6 h-6 bg-indigo-600 text-white text-xs font-black rounded-full flex items-center justify-center">{i + 1}</span>
                   <span className="flex-1 text-sm font-bold text-gray-900 dark:text-white">{a.action}</span>
@@ -671,7 +671,11 @@ export default function StudentDashboardPage() {
             {(['core','role','bonus'] as const).map(cat => {
               const catSkills = displaySkills.filter((s:any)=>categoriseSkill(s.name??s)===cat);
               const labels:Record<string,string>={core:'🧱 Core',role:'⚙️ Role-Specific',bonus:'🚀 Bonus'};
-              const chipCls:Record<string,string>={core:'bg-blue-50 text-blue-700 border-blue-200',role:'bg-purple-50 text-purple-700 border-purple-200',bonus:'bg-teal-50 text-teal-700 border-teal-200'};
+              const chipCls:Record<string,string>={
+                core:'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800',
+                role:'bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800',
+                bonus:'bg-teal-50 dark:bg-teal-900/20 text-teal-700 dark:text-teal-300 border-teal-200 dark:border-teal-800'
+              };
               if (!catSkills.length) return null;
               return (
                 <div key={cat} className="mb-4">
@@ -789,7 +793,7 @@ export default function StudentDashboardPage() {
               {label:'Job Matches',  cur:`${projection.current.matches}`,proj:`${projection.projected.matches}+`,good:true},
               {label:'Hire Prob.',   cur:`${projection.current.probability}%`,proj:`${projection.projected.probability}%`,good:projection.projected.probability>=70},
             ].map(({label,cur,proj,good})=>(
-              <div key={label} className={`rounded-2xl border p-4 text-center ${good?'bg-emerald-50 border-emerald-200':'bg-amber-50 border-amber-200'}`}>
+              <div key={label} className={`rounded-2xl border p-4 text-center transition-all ${good?'bg-emerald-50 dark:bg-emerald-900/10 border-emerald-200 dark:border-emerald-800':'bg-amber-50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800'}`}>
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">{label}</p>
                 <p className="text-lg font-black text-gray-400 line-through text-sm">{cur}</p>
                 <p className={`text-2xl font-black ${good?'text-emerald-700':'text-amber-700'}`}>{proj}</p>
@@ -810,10 +814,10 @@ export default function StudentDashboardPage() {
           </div>
           <div className="space-y-3">
             {guidance.map((g,i)=>(
-              <div key={i} className={`flex items-start gap-3 p-4 rounded-2xl border-l-4 ${
-                g.type==='warning'?'bg-amber-50 border-l-amber-500 border border-amber-100':
-                g.type==='tip'?'bg-blue-50 border-l-blue-500 border border-blue-100':
-                'bg-emerald-50 border-l-emerald-500 border border-emerald-100'}`}>
+              <div key={i} className={`flex items-start gap-3 p-4 rounded-2xl border-l-4 transition-all ${
+                g.type==='warning'?'bg-amber-50 dark:bg-amber-900/20 border-l-amber-500 border border-amber-100 dark:border-amber-800':
+                g.type==='tip'?'bg-blue-50 dark:bg-blue-900/20 border-l-blue-500 border border-blue-100 dark:border-blue-800':
+                'bg-emerald-50 dark:bg-emerald-900/20 border-l-emerald-500 border border-emerald-100 dark:border-emerald-800'}`}>
                 <span className="text-xl shrink-0">{g.type==='warning'?'⚠️':g.type==='tip'?'💡':'✅'}</span>
                 <div>
                   <p className="text-sm font-bold text-gray-900 dark:text-white">{g.text}</p>
@@ -859,7 +863,7 @@ export default function StudentDashboardPage() {
                 </div>
               ))}
             </div>
-            {dirs[0]&&<div className="mt-2 bg-purple-50 border border-purple-100 rounded-xl px-4 py-3 text-sm text-purple-800 font-semibold">
+            {dirs[0]&&<div className="mt-2 bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800 rounded-xl px-4 py-3 text-sm text-purple-800 dark:text-purple-300 font-semibold">
               💡 Best aligned: <span className="font-black">{dirs[0].role}</span> ({dirs[0].pct}% match).{' '}
               {dirs[0].missing.length>0?`Add ${dirs[0].missing[0]} to close the gap.`:'Apply to these roles now.'}
             </div>}
