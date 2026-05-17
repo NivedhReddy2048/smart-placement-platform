@@ -126,6 +126,11 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
     r"^https://smart-placement-platform-p3kx-.*\.vercel\.app$",
 ]
 
+CSRF_TRUSTED_ORIGINS = os.getenv(
+    "CSRF_TRUSTED_ORIGINS",
+    "https://smart-placement-platform.onrender.com"
+).split(",")
+
 # Allow all origins only in DEBUG mode for easier testing
 if DEBUG:
     CORS_ALLOW_ALL_ORIGINS = True
