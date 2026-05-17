@@ -9,9 +9,9 @@ https://smart-placement-platform-im9a.vercel.app/login
 
 ### 🔗 Backend Admin Panel
 
-Django Admin Panel
+https://smart-placement-platform.onrender.com/admin/login/?next=/admin/
 
-##✨ Features
+## ✨ Features
 ### 👨‍🎓 Student Features
 ### 🔐 JWT Authentication System
 ### 📄 AI Resume Analysis
@@ -136,7 +136,7 @@ Django Admin Panel
 
 ## 🧪 Local Setup
 ## 1️⃣ Clone Repository
-### git clone https://github.com/your-username/smart-placement-platform.git
+### git clone https://github.com/NivedhReddy2048/smart-placement-platform
 ### cd smart-placement-platform
 
 ## 2️⃣ Backend Setup
