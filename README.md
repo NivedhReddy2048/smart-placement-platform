@@ -5,7 +5,7 @@ An AI-powered full-stack placement preparation and career guidance platform buil
 ## 🌐 Live Demo
 ### 🔗 Frontend
 
-Smart Placement Frontend
+https://smart-placement-platform-im9a.vercel.app/login
 
 ### 🔗 Backend Admin Panel
 
