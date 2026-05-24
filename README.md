@@ -2,7 +2,10 @@
 
 An AI-powered full-stack placement preparation and career guidance platform built for students, recruiters, and mentors. The platform combines modern web technologies, machine learning, resume intelligence, analytics, and real-time features into one scalable ecosystem.
 
-## 🌐 Live Demo
+---
+
+## 🔴 **Live Demo:** [Click here to test the app](https://smart-placement-platform-im9a.vercel.app/login)
+
 ### 🔗 Frontend
 
 https://smart-placement-platform-im9a.vercel.app/login
